@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flags &amp; Capitals Quiz</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: linear-gradient(160deg, #1e3a5f 0%, #2d1b4e 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 620px;
+  }
+
+  /* Way back to the main site. */
+  .back-link {
+    display: inline-block;
+    margin-bottom: 14px;
+    padding: 4px 2px;
+    font-size: 14px;
+    color: #8da2bd;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: #fff; }
+
+  /* The game itself — the only part that gets the raised panel. */
+  .card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 28px;
+    text-align: center;
+  }
+
+  h1 { margin: 0 0 4px; font-size: 26px; }
+
+  /* ---- Flags / Capitals switch ---- */
+  .mode-toggle {
+    display: inline-flex;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.28);
+    padding: 4px;
+    border-radius: 99px;
+    margin-bottom: 20px;
+  }
+  .mode-toggle button {
+    border: none;
+    background: transparent;
+    color: #cbd5e1;
+    padding: 9px 26px;
+    border-radius: 99px;
+    font-size: 15px;
+  }
+  .mode-toggle button:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.1);
+    transform: none;
+  }
+  .mode-toggle button.active {
+    background: #6366f1;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #cbd5e1;
+    margin-bottom: 10px;
+  }
+
+  .bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+  .bar > div {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #38bdf8, #a78bfa);
+    transition: width 0.3s;
+  }
+
+  /* ---- the question: either a flag, or a country name ---- */
+  .flag-box {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 20px;
+  }
+  .flag-box img {
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 4 / 3;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .country-prompt {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 34px 18px;
+    margin-bottom: 20px;
+  }
+  .country-prompt .label {
+    display: block;
+    font-size: 14px;
+    color: #94a3b8;
+    margin-bottom: 8px;
+  }
+  .country-prompt .country-name { font-size: 28px; font-weight: 700; }
+
+  /* ---- the typing box ---- */
+  .answer-input {
+    width: 100%;
+    font: inherit;
+    font-size: 17px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    text-align: center;
+  }
+  .answer-input:focus { outline: none; border-color: #818cf8; }
+  .answer-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+  .answer-input:disabled { opacity: 0.6; }
+  .answer-input.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
+  .answer-input.wrong   { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 12px; }
+
+  button {
+    font: inherit;
+    font-size: 16px;
+    padding: 13px 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-1px);
+  }
+  button:disabled { cursor: default; opacity: 0.5; }
+
+  .primary {
+    flex: 1;
+    background: #6366f1;
+    border-color: #818cf8;
+    font-weight: 600;
+  }
+  .primary:hover:not(:disabled) { background: #4f46e5; }
+
+  .feedback {
+    min-height: 48px;
+    margin-top: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .feedback .note {
+    display: block;
+    font-weight: 400;
+    font-size: 14px;
+    color: #cbd5e1;
+    margin-top: 4px;
+  }
+
+  .hidden { display: none; }
+
+  .big-score { font-size: 46px; font-weight: 700; margin: 12px 0; }
+  .sub { color: #cbd5e1; font-size: 15px; line-height: 1.6; }
+
+  /* ---- reference lists, below the card and intentionally low-key ----
+     No panel, no border, dimmer text: it should read as a footnote
+     you can consult, not as part of the game. */
+  .reference { padding: 4px 4px 0; }
+
+  .ref-section { margin-top: 30px; text-align: left; }
+  .ref-section h2 {
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: #8da2bd;
+    margin: 0 0 3px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .ref-section h2 .count {
+    font-weight: 400;
+    font-size: 12px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #7789a3;
+  }
+  .ref-section .caption {
+    margin: 0 0 10px;
+    font-size: 12.5px;
+    color: #7789a3;
+    line-height: 1.5;
+  }
+
+  .country-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 1px 16px;
+    max-height: 250px;
+    overflow-y: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    padding: 10px 2px;
+  }
+  .country-grid div {
+    font-size: 12.5px;
+    padding: 3px 0;
+    line-height: 1.35;
+    color: #a8b8cd;
+  }
+  .country-grid .alias { color: #6d7f99; font-size: 11px; }
+
+  .excluded-box {
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    padding: 12px 2px;
+  }
+  .excluded-group { margin-bottom: 12px; }
+  .excluded-group:last-child { margin-bottom: 0; }
+  .excluded-group .why { font-size: 11.5px; color: #6d7f99; margin-bottom: 3px; }
+  .excluded-group .items { font-size: 12.5px; line-height: 1.5; color: #a8b8cd; }
+
+  /* ---- end-of-game review list ---- */
+  .missed-list {
+    max-height: 260px;
+    overflow-y: auto;
+    text-align: left;
+    margin: 18px 0;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.22);
+    padding: 8px;
+  }
+  .missed-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 7px 10px;
+    font-size: 15px;
+  }
+  .missed-row img {
+    width: 44px;
+    height: 30px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .missed-row .answer { color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+<a class="back-link" href="/">← Priyasha Agarwal</a>
+
+<!-- Everything you actually play with lives in the raised card. -->
+<div class="card">
+
+  <!-- ===== START SCREEN ===== -->
+  <div id="start-screen">
+    <div class="mode-toggle">
+      <button id="mode-flags" onclick="setMode('flags')">Flags</button>
+      <button id="mode-capitals" onclick="setMode('capitals')">Capitals</button>
+    </div>
+
+    <h1 id="start-title"></h1>
+    <p class="sub" id="start-blurb"></p>
+    <p class="sub" style="font-size:14px;" id="start-hint"></p>
+
+    <button class="primary" onclick="startGame()">Start Game</button>
+  </div>
+
+  <!-- ===== GAME SCREEN ===== -->
+  <div id="game-screen" class="hidden">
+    <div class="stats">
+      <span><span id="unit-label">Flag</span>
+            <strong id="current-num">1</strong> of <strong id="total-num">197</strong></span>
+      <span>Score: <strong id="score">0</strong></span>
+    </div>
+    <div class="bar"><div id="progress"></div></div>
+
+    <!-- Flags mode shows this… -->
+    <div class="flag-box" id="prompt-flag">
+      <img id="flag-img" alt="Flag to guess">
+    </div>
+
+    <!-- …and Capitals mode shows this instead. -->
+    <div class="country-prompt hidden" id="prompt-country">
+      <span class="label">What is the capital of</span>
+      <span class="country-name" id="prompt-country-name"></span>
+    </div>
+
+    <input id="answer" class="answer-input" type="text"
+           autocomplete="off" autocorrect="off" spellcheck="false">
+
+    <div class="btn-row">
+      <button class="primary" id="check-btn" onclick="submitAnswer()">Check answer</button>
+      <button id="skip-btn" onclick="skipQuestion()">Skip</button>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+    <button class="primary hidden" id="next-btn" onclick="nextQuestion()">Next →</button>
+  </div>
+
+  <!-- ===== END SCREEN ===== -->
+  <div id="end-screen" class="hidden">
+    <h1>🏆 All done!</h1>
+    <div class="big-score"><span id="final-score">0</span> / <span id="final-total">197</span></div>
+    <p class="sub" id="final-message"></p>
+
+    <p class="sub" id="missed-title" style="font-weight:600; margin-bottom:0;"></p>
+    <div class="missed-list hidden" id="missed-list"></div>
+
+    <button class="primary" onclick="startGame()">Play again</button>
+    <button onclick="goHome()" style="margin-top:10px;">Back to menu</button>
+  </div>
+
+</div><!-- /card -->
+
+<!-- Reference material: sits outside the card, deliberately quiet,
+     and only shows on the menu. -->
+<div class="reference" id="reference">
+
+  <!-- The full pool of answers, built automatically from the data below
+       so it can never drift out of step with the actual game. -->
+  <div class="ref-section">
+    <h2>
+      <span id="accepted-heading"></span>
+      <span class="count" id="accepted-count"></span>
+    </h2>
+    <p class="caption" id="accepted-caption"></p>
+    <div class="country-grid" id="accepted-list"></div>
+  </div>
+
+  <!-- Common near-misses that deliberately aren't in the game. -->
+  <div class="ref-section">
+    <h2><span>Not in the game</span></h2>
+    <p class="caption" id="excluded-caption"></p>
+    <div class="excluded-box" id="excluded-list"></div>
+  </div>
+
+</div><!-- /reference -->
+
+</div><!-- /page -->
+
+<script>
+/* =========================================================
+   1. THE DATA
+   code     - 2-letter code used to fetch the flag picture
+   alt      - other names for the COUNTRY that also count
+   cap      - the capital city
+   capAlt   - other names for the CAPITAL that also count
+   (Accents and punctuation are ignored automatically, so
+    "Bogotá" and "bogota" never need a separate entry.)
+========================================================= */
+const COUNTRIES = [
+  { name: "Afghanistan", code: "af", cap: "Kabul" },
+  { name: "Albania", code: "al", cap: "Tirana" },
+  { name: "Algeria", code: "dz", cap: "Algiers" },
+  { name: "Andorra", code: "ad", cap: "Andorra la Vella" },
+  { name: "Angola", code: "ao", cap: "Luanda" },
+  { name: "Antigua and Barbuda", code: "ag", alt: ["antigua"], cap: "Saint John's" },
+  { name: "Argentina", code: "ar", cap: "Buenos Aires" },
+  { name: "Armenia", code: "am", cap: "Yerevan" },
+  { name: "Australia", code: "au", cap: "Canberra" },
+  { name: "Austria", code: "at", cap: "Vienna", capAlt: ["wien"] },
+  { name: "Azerbaijan", code: "az", cap: "Baku" },
+  { name: "Bahamas", code: "bs", cap: "Nassau" },
+  { name: "Bahrain", code: "bh", cap: "Manama" },
+  { name: "Bangladesh", code: "bd", cap: "Dhaka" },
+  { name: "Barbados", code: "bb", cap: "Bridgetown" },
+  { name: "Belarus", code: "by", cap: "Minsk" },
+  { name: "Belgium", code: "be", cap: "Brussels" },
+  { name: "Belize", code: "bz", cap: "Belmopan" },
+  { name: "Benin", code: "bj", cap: "Porto-Novo", capAlt: ["cotonou"] },
+  { name: "Bhutan", code: "bt", cap: "Thimphu" },
+  { name: "Bolivia", code: "bo", cap: "Sucre", capAlt: ["la paz"] },
+  { name: "Bosnia and Herzegovina", code: "ba", alt: ["bosnia"], cap: "Sarajevo" },
+  { name: "Botswana", code: "bw", cap: "Gaborone" },
+  { name: "Brazil", code: "br", cap: "Brasília" },
+  { name: "Brunei", code: "bn", alt: ["brunei darussalam"], cap: "Bandar Seri Begawan" },
+  { name: "Bulgaria", code: "bg", cap: "Sofia" },
+  { name: "Burkina Faso", code: "bf", cap: "Ouagadougou" },
+  { name: "Burundi", code: "bi", cap: "Gitega" },
+  { name: "Cabo Verde", code: "cv", alt: ["cape verde"], cap: "Praia" },
+  { name: "Cambodia", code: "kh", alt: ["kampuchea"], cap: "Phnom Penh" },
+  { name: "Cameroon", code: "cm", cap: "Yaoundé" },
+  { name: "Canada", code: "ca", cap: "Ottawa" },
+  { name: "Central African Republic", code: "cf", alt: ["car"], cap: "Bangui" },
+  { name: "Chad", code: "td", cap: "N'Djamena", capAlt: ["ndjamena"] },
+  { name: "Chile", code: "cl", cap: "Santiago" },
+  { name: "China", code: "cn", alt: ["peoples republic of china", "prc"],
+    cap: "Beijing", capAlt: ["peking"] },
+  { name: "Colombia", code: "co", cap: "Bogotá" },
+  { name: "Comoros", code: "km", cap: "Moroni" },
+  { name: "Congo (Republic of the)", code: "cg",
+    alt: ["congo", "republic of the congo", "congo brazzaville", "congo republic"],
+    cap: "Brazzaville" },
+  { name: "Congo (Democratic Republic)", code: "cd",
+    alt: ["dr congo", "drc", "democratic republic of the congo", "congo kinshasa", "zaire"],
+    cap: "Kinshasa" },
+  { name: "Costa Rica", code: "cr", cap: "San José" },
+  { name: "Côte d'Ivoire", code: "ci", alt: ["ivory coast", "cote d ivoire"],
+    cap: "Yamoussoukro", capAlt: ["abidjan"] },
+  { name: "Croatia", code: "hr", cap: "Zagreb" },
+  { name: "Cuba", code: "cu", cap: "Havana", capAlt: ["la habana"] },
+  { name: "Cyprus", code: "cy", cap: "Nicosia" },
+  { name: "Czechia", code: "cz", alt: ["czech republic"], cap: "Prague", capAlt: ["praha"] },
+  { name: "Denmark", code: "dk", cap: "Copenhagen" },
+  { name: "Djibouti", code: "dj", cap: "Djibouti" },
+  { name: "Dominica", code: "dm", cap: "Roseau" },
+  { name: "Dominican Republic", code: "do", cap: "Santo Domingo" },
+  { name: "Ecuador", code: "ec", cap: "Quito" },
+  { name: "Egypt", code: "eg", cap: "Cairo" },
+  { name: "El Salvador", code: "sv", cap: "San Salvador" },
+  { name: "Equatorial Guinea", code: "gq", cap: "Malabo" },
+  { name: "Eritrea", code: "er", cap: "Asmara" },
+  { name: "Estonia", code: "ee", cap: "Tallinn" },
+  { name: "Eswatini", code: "sz", alt: ["swaziland"], cap: "Mbabane", capAlt: ["lobamba"] },
+  { name: "Ethiopia", code: "et", cap: "Addis Ababa" },
+  { name: "Fiji", code: "fj", cap: "Suva" },
+  { name: "Finland", code: "fi", cap: "Helsinki" },
+  { name: "France", code: "fr", cap: "Paris" },
+  { name: "Gabon", code: "ga", cap: "Libreville" },
+  { name: "Gambia", code: "gm", cap: "Banjul" },
+  { name: "Georgia", code: "ge", cap: "Tbilisi" },
+  { name: "Germany", code: "de", cap: "Berlin" },
+  { name: "Ghana", code: "gh", cap: "Accra" },
+  { name: "Greece", code: "gr", alt: ["hellas"], cap: "Athens" },
+  { name: "Grenada", code: "gd", cap: "Saint George's" },
+  { name: "Guatemala", code: "gt", cap: "Guatemala City" },
+  { name: "Guinea", code: "gn", cap: "Conakry" },
+  { name: "Guinea-Bissau", code: "gw", cap: "Bissau" },
+  { name: "Guyana", code: "gy", cap: "Georgetown" },
+  { name: "Haiti", code: "ht", cap: "Port-au-Prince" },
+  { name: "Honduras", code: "hn", cap: "Tegucigalpa" },
+  { name: "Hungary", code: "hu", cap: "Budapest" },
+  { name: "Iceland", code: "is", cap: "Reykjavík" },
+  { name: "India", code: "in", cap: "New Delhi", capAlt: ["delhi"] },
+  { name: "Indonesia", code: "id", cap: "Jakarta", capAlt: ["nusantara"] },
+  { name: "Iran", code: "ir", alt: ["islamic republic of iran", "persia"], cap: "Tehran" },
+  { name: "Iraq", code: "iq", cap: "Baghdad" },
+  { name: "Ireland", code: "ie", alt: ["republic of ireland", "eire"], cap: "Dublin" },
+  { name: "Israel", code: "il", cap: "Jerusalem" },
+  { name: "Italy", code: "it", cap: "Rome", capAlt: ["roma"] },
+  { name: "Jamaica", code: "jm", cap: "Kingston" },
+  { name: "Japan", code: "jp", cap: "Tokyo" },
+  { name: "Jordan", code: "jo", cap: "Amman" },
+  { name: "Kazakhstan", code: "kz", cap: "Astana", capAlt: ["nur sultan", "nursultan"] },
+  { name: "Kenya", code: "ke", cap: "Nairobi" },
+  { name: "Kiribati", code: "ki", cap: "Tarawa", capAlt: ["south tarawa"] },
+  { name: "Kosovo", code: "xk", alt: ["republic of kosovo"], cap: "Pristina", capAlt: ["prishtina"] },
+  { name: "Kuwait", code: "kw", cap: "Kuwait City" },
+  { name: "Kyrgyzstan", code: "kg", alt: ["kyrgyz republic"], cap: "Bishkek" },
+  { name: "Laos", code: "la", alt: ["lao", "lao pdr"], cap: "Vientiane" },
+  { name: "Latvia", code: "lv", cap: "Riga" },
+  { name: "Lebanon", code: "lb", cap: "Beirut" },
+  { name: "Lesotho", code: "ls", cap: "Maseru" },
+  { name: "Liberia", code: "lr", cap: "Monrovia" },
+  { name: "Libya", code: "ly", cap: "Tripoli" },
+  { name: "Liechtenstein", code: "li", cap: "Vaduz" },
+  { name: "Lithuania", code: "lt", cap: "Vilnius" },
+  { name: "Luxembourg", code: "lu", cap: "Luxembourg City", capAlt: ["luxembourg"] },
+  { name: "Madagascar", code: "mg", cap: "Antananarivo" },
+  { name: "Malawi", code: "mw", cap: "Lilongwe" },
+  { name: "Malaysia", code: "my", cap: "Kuala Lumpur", capAlt: ["putrajaya"] },
+  { name: "Maldives", code: "mv", cap: "Malé" },
+  { name: "Mali", code: "ml", cap: "Bamako" },
+  { name: "Malta", code: "mt", cap: "Valletta" },
+  { name: "Marshall Islands", code: "mh", cap: "Majuro" },
+  { name: "Mauritania", code: "mr", cap: "Nouakchott" },
+  { name: "Mauritius", code: "mu", cap: "Port Louis" },
+  { name: "Mexico", code: "mx", cap: "Mexico City", capAlt: ["ciudad de mexico", "cdmx"] },
+  { name: "Micronesia", code: "fm", alt: ["federated states of micronesia"], cap: "Palikir" },
+  { name: "Moldova", code: "md", alt: ["republic of moldova"], cap: "Chișinău", capAlt: ["kishinev"] },
+  { name: "Monaco", code: "mc", cap: "Monaco" },
+  { name: "Mongolia", code: "mn", cap: "Ulaanbaatar", capAlt: ["ulan bator"] },
+  { name: "Montenegro", code: "me", cap: "Podgorica" },
+  { name: "Morocco", code: "ma", cap: "Rabat" },
+  { name: "Mozambique", code: "mz", cap: "Maputo" },
+  { name: "Myanmar", code: "mm", alt: ["burma"], cap: "Naypyidaw", capAlt: ["nay pyi taw"] },
+  { name: "Namibia", code: "na", cap: "Windhoek" },
+  { name: "Nauru", code: "nr", cap: "Yaren" },
+  { name: "Nepal", code: "np", cap: "Kathmandu" },
+  { name: "Netherlands", code: "nl", cap: "Amsterdam", capAlt: ["the hague", "den haag"] },
+  { name: "New Zealand", code: "nz", cap: "Wellington" },
+  { name: "Nicaragua", code: "ni", cap: "Managua" },
+  { name: "Niger", code: "ne", cap: "Niamey" },
+  { name: "Nigeria", code: "ng", cap: "Abuja" },
+  { name: "North Korea", code: "kp", alt: ["dprk", "democratic peoples republic of korea"],
+    cap: "Pyongyang" },
+  { name: "North Macedonia", code: "mk", alt: ["macedonia"], cap: "Skopje" },
+  { name: "Norway", code: "no", cap: "Oslo" },
+  { name: "Oman", code: "om", cap: "Muscat" },
+  { name: "Pakistan", code: "pk", cap: "Islamabad" },
+  { name: "Palau", code: "pw", cap: "Ngerulmud" },
+  { name: "Palestine", code: "ps", alt: ["state of palestine"],
+    cap: "Ramallah", capAlt: ["east jerusalem", "jerusalem"] },
+  { name: "Panama", code: "pa", cap: "Panama City" },
+  { name: "Papua New Guinea", code: "pg", alt: ["png"], cap: "Port Moresby" },
+  { name: "Paraguay", code: "py", cap: "Asunción" },
+  { name: "Peru", code: "pe", cap: "Lima" },
+  { name: "Philippines", code: "ph", cap: "Manila" },
+  { name: "Poland", code: "pl", cap: "Warsaw", capAlt: ["warszawa"] },
+  { name: "Portugal", code: "pt", cap: "Lisbon", capAlt: ["lisboa"] },
+  { name: "Qatar", code: "qa", cap: "Doha" },
+  { name: "Romania", code: "ro", cap: "Bucharest" },
+  { name: "Russia", code: "ru", alt: ["russian federation"], cap: "Moscow" },
+  { name: "Rwanda", code: "rw", cap: "Kigali" },
+  { name: "Saint Kitts and Nevis", code: "kn", alt: ["saint kitts"], cap: "Basseterre" },
+  { name: "Saint Lucia", code: "lc", cap: "Castries" },
+  { name: "Saint Vincent and the Grenadines", code: "vc", alt: ["saint vincent"], cap: "Kingstown" },
+  { name: "Samoa", code: "ws", cap: "Apia" },
+  { name: "San Marino", code: "sm", cap: "San Marino" },
+  { name: "São Tomé and Príncipe", code: "st", alt: ["sao tome"], cap: "São Tomé" },
+  { name: "Saudi Arabia", code: "sa", cap: "Riyadh" },
+  { name: "Senegal", code: "sn", cap: "Dakar" },
+  { name: "Serbia", code: "rs", cap: "Belgrade" },
+  { name: "Seychelles", code: "sc", cap: "Victoria" },
+  { name: "Sierra Leone", code: "sl", cap: "Freetown" },
+  { name: "Singapore", code: "sg", cap: "Singapore" },
+  { name: "Slovakia", code: "sk", alt: ["slovak republic"], cap: "Bratislava" },
+  { name: "Slovenia", code: "si", cap: "Ljubljana" },
+  { name: "Solomon Islands", code: "sb", cap: "Honiara" },
+  { name: "Somalia", code: "so", cap: "Mogadishu" },
+  { name: "South Africa", code: "za", cap: "Pretoria", capAlt: ["cape town", "bloemfontein"] },
+  { name: "South Korea", code: "kr", alt: ["republic of korea"], cap: "Seoul" },
+  { name: "South Sudan", code: "ss", cap: "Juba" },
+  { name: "Spain", code: "es", cap: "Madrid" },
+  { name: "Sri Lanka", code: "lk", alt: ["ceylon"],
+    cap: "Sri Jayawardenepura Kotte", capAlt: ["colombo", "kotte"] },
+  { name: "Sudan", code: "sd", cap: "Khartoum" },
+  { name: "Suriname", code: "sr", cap: "Paramaribo" },
+  { name: "Sweden", code: "se", cap: "Stockholm" },
+  { name: "Switzerland", code: "ch", cap: "Bern", capAlt: ["berne"] },
+  { name: "Syria", code: "sy", alt: ["syrian arab republic"], cap: "Damascus" },
+  { name: "Taiwan", code: "tw", alt: ["republic of china", "chinese taipei"], cap: "Taipei" },
+  { name: "Tajikistan", code: "tj", cap: "Dushanbe" },
+  { name: "Tanzania", code: "tz", cap: "Dodoma" },
+  { name: "Thailand", code: "th", alt: ["siam"], cap: "Bangkok" },
+  { name: "Timor-Leste", code: "tl", alt: ["east timor"], cap: "Dili" },
+  { name: "Togo", code: "tg", cap: "Lomé" },
+  { name: "Tonga", code: "to", cap: "Nuku'alofa", capAlt: ["nukualofa"] },
+  { name: "Trinidad and Tobago", code: "tt", alt: ["trinidad"], cap: "Port of Spain" },
+  { name: "Tunisia", code: "tn", cap: "Tunis" },
+  { name: "Turkey", code: "tr", alt: ["turkiye"], cap: "Ankara" },
+  { name: "Turkmenistan", code: "tm", cap: "Ashgabat" },
+  { name: "Tuvalu", code: "tv", cap: "Funafuti" },
+  { name: "Uganda", code: "ug", cap: "Kampala" },
+  { name: "Ukraine", code: "ua", cap: "Kyiv", capAlt: ["kiev"] },
+  { name: "United Arab Emirates", code: "ae", alt: ["uae", "emirates"], cap: "Abu Dhabi" },
+  { name: "United Kingdom", code: "gb", alt: ["uk", "great britain", "britain"], cap: "London" },
+  { name: "United States", code: "us",
+    alt: ["usa", "us", "united states of america", "america"],
+    cap: "Washington, D.C.", capAlt: ["washington dc", "washington"] },
+  { name: "Uruguay", code: "uy", cap: "Montevideo" },
+  { name: "Uzbekistan", code: "uz", cap: "Tashkent" },
+  { name: "Vanuatu", code: "vu", cap: "Port Vila" },
+  { name: "Vatican City", code: "va", alt: ["vatican", "holy see"], cap: "Vatican City" },
+  { name: "Venezuela", code: "ve", cap: "Caracas" },
+  { name: "Vietnam", code: "vn", alt: ["viet nam"], cap: "Hanoi" },
+  { name: "Yemen", code: "ye", cap: "Sana'a", capAlt: ["sanaa"] },
+  { name: "Zambia", code: "zm", cap: "Lusaka" },
+  { name: "Zimbabwe", code: "zw", cap: "Harare" }
+];
+
+/* Things people often expect to find but that aren't in the game. */
+const NOT_IN_GAME = {
+  flags: [
+    { why: "Parts of a country rather than countries of their own",
+      items: ["England", "Scotland", "Wales", "Northern Ireland", "Holland",
+              "Hong Kong", "Macau", "Catalonia", "Bavaria", "Quebec", "Zanzibar"] },
+    { why: "Territories and dependencies — governed by another country",
+      items: ["Puerto Rico", "Greenland", "Bermuda", "Guam", "Gibraltar",
+              "Cayman Islands", "Faroe Islands", "Aruba", "Curaçao",
+              "French Polynesia", "New Caledonia", "Isle of Man", "Jersey",
+              "American Samoa", "U.S. Virgin Islands"] },
+    { why: "Claimed states that most of the world doesn't recognise",
+      items: ["Somaliland", "Northern Cyprus", "Abkhazia", "South Ossetia",
+              "Transnistria", "Western Sahara"] },
+    { why: "Other flags that often get guessed",
+      items: ["European Union", "United Nations", "Antarctica",
+              "Cook Islands", "Niue", "Tibet", "Kurdistan"] }
+  ],
+  capitals: [
+    { why: "Biggest city, but not the capital",
+      items: ["New York", "Los Angeles", "Toronto", "Vancouver", "Montreal",
+              "Sydney", "Melbourne", "Auckland", "Mumbai", "Shanghai", "Osaka",
+              "Istanbul", "Barcelona", "Milan", "Munich", "Frankfurt", "Zurich",
+              "Geneva", "São Paulo", "Casablanca", "Alexandria", "Durban",
+              "Johannesburg"] },
+    { why: "Used to be the capital, but the capital moved",
+      items: ["Yangon", "Almaty", "Lagos", "Rio de Janeiro", "Dar es Salaam",
+              "Bujumbura", "Karachi", "Bonn"] },
+    { why: "Capitals of places that aren't countries in this game",
+      items: ["Edinburgh", "Cardiff", "Belfast", "Nuuk", "San Juan",
+              "Hamilton", "Douglas", "Hargeisa", "Laayoune"] }
+  ]
+};
+
+/* =========================================================
+   2. MATCHING WHAT THE PLAYER TYPED
+========================================================= */
+
+/* Turn whatever was typed into a plain, comparable form:
+   lowercase, no accents, no punctuation, "St." becomes "Saint",
+   and a leading "the" is dropped. So "The Côte d'Ivoire!" and
+   "cote divoire" both end up as "cote divoire". */
+function normalize(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")  // strip accents
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")                        // punctuation -> space
+    .trim()
+    .replace(/^st\b/, "saint")
+    .replace(/^the\b/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/* Every spelling that counts as correct for a country, in a given mode. */
+function answersFor(country, mode) {
+  return mode === "capitals"
+    ? [country.cap].concat(country.capAlt || [])
+    : [country.name].concat(country.alt || []);
+}
+
+/* The one name we show the player when revealing the answer. */
+function displayAnswer(country, mode) {
+  return mode === "capitals" ? country.cap : country.name;
+}
+
+/* Pre-normalize every accepted spelling once, per mode. */
+function buildLookup(mode) {
+  const list = [];
+  COUNTRIES.forEach(function (country) {
+    answersFor(country, mode).forEach(function (n) {
+      list.push({ country: country, key: normalize(n) });
+    });
+  });
+  return list;
+}
+const LOOKUPS = { flags: buildLookup("flags"), capitals: buildLookup("capitals") };
+
+/* How many small mistakes turn string a into string b?
+   Each of these counts as one: a wrong letter, a missing letter,
+   an extra letter, or two neighbouring letters swapped. So
+   "inda" -> "india" is 1, and so is "portgual" -> "portugal".
+   Swaps count as one because they're the most common typo of all. */
+function editDistance(a, b) {
+  const grid = [];
+  for (let i = 0; i <= a.length; i++) grid.push([i]);
+  for (let j = 0; j <= b.length; j++) grid[0][j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      grid[i][j] = Math.min(
+        grid[i - 1][j] + 1,        // a letter was left out
+        grid[i][j - 1] + 1,        // an extra letter was typed
+        grid[i - 1][j - 1] + cost  // a letter was wrong
+      );
+      // two neighbouring letters typed the wrong way round
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        grid[i][j] = Math.min(grid[i][j], grid[i - 2][j - 2] + 1);
+      }
+    }
+  }
+  return grid[a.length][b.length];
+}
+
+/* How sloppy we're willing to be, based on how long the word is.
+   Very short guesses get no slack, since almost anything is close
+   to almost anything else at that length. The real protection
+   against accepting a wrong answer, though, is the "is it closer
+   to something else?" check in judge() below. */
+function typoAllowance(length) {
+  if (length <= 3) return 0;
+  if (length <= 8) return 1;
+  return 2;
+}
+
+/* Decide whether the typed guess counts for this country.
+   Returns "exact", "typo" (right answer, spelled a bit off),
+   or "wrong". */
+function judge(typed, country, whichMode) {
+  const activeMode = whichMode || mode;
+  const lookup = LOOKUPS[activeMode];
+  const guess = normalize(typed);
+  if (guess === "") return "wrong";
+
+  // Did they nail one of this country's accepted answers?
+  const exact = lookup.some(function (entry) {
+    return entry.country === country && entry.key === guess;
+  });
+  if (exact) return "exact";
+
+  // Otherwise: which answer is their spelling *closest* to?
+  // We check against every country, not just the right one, so that
+  // typing "iraq" when the answer is Iran is rejected — "iraq" is a
+  // perfect match for a different country, so it can't be a typo.
+  let best = Infinity;
+  let winners = new Set();
+  lookup.forEach(function (entry) {
+    const distance = editDistance(guess, entry.key);
+    if (distance < best) {
+      best = distance;
+      winners = new Set([entry.country]);
+    } else if (distance === best) {
+      winners.add(entry.country);
+    }
+  });
+
+  const allowed = typoAllowance(
+    Math.min(guess.length, normalize(displayAnswer(country, activeMode)).length));
+  if (best <= allowed && winners.size === 1 && winners.has(country)) {
+    return "typo";
+  }
+  return "wrong";
+}
+
+/* =========================================================
+   3. GAME STATE — variables that remember what's going on
+========================================================= */
+let mode = "flags";   // "flags" or "capitals"
+let deck = [];        // the shuffled countries for this round
+let index = 0;        // which question we're on (0 = the first one)
+let score = 0;        // how many we've got right
+let missed = [];      // the ones we got wrong or skipped
+let answered = false; // has the player already answered this round?
+
+const answerBox = document.getElementById("answer");
+
+document.getElementById("total-num").textContent = COUNTRIES.length;
+document.getElementById("final-total").textContent = COUNTRIES.length;
+
+/* Randomly shuffle a copy of an array. */
+function shuffle(arr) {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+/* Switch which screen is visible. The reference lists live outside the
+   card now, so they need hiding by hand once you start playing. */
+function showScreen(id) {
+  ["start-screen", "game-screen", "end-screen"].forEach(function (s) {
+    document.getElementById(s).classList.toggle("hidden", s !== id);
+  });
+  document.getElementById("reference")
+    .classList.toggle("hidden", id !== "start-screen");
+}
+
+/* =========================================================
+   4. SWITCHING BETWEEN FLAGS AND CAPITALS
+========================================================= */
+const MODE_TEXT = {
+  flags: {
+    title: "🌍 Guess the Flag",
+    blurb: "You'll see a flag. <strong>Type the country's name</strong> and press Enter.<br>" +
+           "All " + COUNTRIES.length + " countries, in random order.",
+    hint: "Don't worry about spelling — small typos, common short forms " +
+          "(USA, UK, DRC) and missing accents all count.",
+    unit: "Flag",
+    placeholder: "Type the country…",
+    listHeading: "Countries in the game",
+    listCaption: "Every flag you'll be shown comes from this list. " +
+                 "Grey text marks other spellings that also count as correct.",
+    excludedCaption: "These never come up as a flag, and typing one won't be " +
+                     "accepted as an answer. They're the ones people most often expect to see."
+  },
+  capitals: {
+    title: "🏛️ Guess the Capital",
+    blurb: "You'll see a country. <strong>Type its capital city</strong> and press Enter.<br>" +
+           "All " + COUNTRIES.length + " countries, in random order.",
+    hint: "Don't worry about spelling — small typos and missing accents count, " +
+          "and either name works where a country has two capitals.",
+    unit: "Country",
+    placeholder: "Type the capital…",
+    listHeading: "Capitals in the game",
+    listCaption: "Every answer comes from this list. Grey text marks other " +
+                 "names that also count — including second capitals.",
+    excludedCaption: "None of these is the answer to any question, and typing " +
+                     "one won't be accepted. They're the most common wrong guesses."
+  }
+};
+
+function setMode(newMode) {
+  mode = newMode;
+  const t = MODE_TEXT[mode];
+
+  document.getElementById("mode-flags").classList.toggle("active", mode === "flags");
+  document.getElementById("mode-capitals").classList.toggle("active", mode === "capitals");
+
+  document.getElementById("start-title").textContent = t.title;
+  document.getElementById("start-blurb").innerHTML = t.blurb;
+  document.getElementById("start-hint").textContent = t.hint;
+  document.getElementById("unit-label").textContent = t.unit;
+  answerBox.placeholder = t.placeholder;
+
+  document.getElementById("accepted-heading").textContent = t.listHeading;
+  document.getElementById("accepted-caption").textContent = t.listCaption;
+  document.getElementById("excluded-caption").textContent = t.excludedCaption;
+
+  buildReferenceLists();
+}
+
+function goHome() {
+  showScreen("start-screen");
+}
+
+/* =========================================================
+   5. PLAYING
+========================================================= */
+
+/* Start (or restart) the game in the current mode. */
+function startGame() {
+  deck = shuffle(COUNTRIES);
+  index = 0;
+  score = 0;
+  missed = [];
+  showScreen("game-screen");
+  showQuestion();
+}
+
+/* Draw one round: the question, plus an empty answer box. */
+function showQuestion() {
+  answered = false;
+  const country = deck[index];
+
+  document.getElementById("current-num").textContent = index + 1;
+  document.getElementById("score").textContent = score;
+  document.getElementById("progress").style.width =
+    (index / deck.length) * 100 + "%";
+
+  // Flags mode shows a picture; capitals mode shows the country's name.
+  document.getElementById("prompt-flag").classList.toggle("hidden", mode !== "flags");
+  document.getElementById("prompt-country").classList.toggle("hidden", mode !== "capitals");
+
+  if (mode === "flags") {
+    const img = document.getElementById("flag-img");
+    img.onerror = function () {
+      document.getElementById("feedback").textContent =
+        "Couldn't load the flag picture — check your internet connection.";
+    };
+    img.src = "https://flagcdn.com/w320/" + country.code + ".png";
+  } else {
+    document.getElementById("prompt-country-name").textContent = country.name;
+  }
+
+  answerBox.value = "";
+  answerBox.disabled = false;
+  answerBox.className = "answer-input";
+  answerBox.focus();
+
+  document.getElementById("check-btn").disabled = false;
+  document.getElementById("skip-btn").disabled = false;
+  document.getElementById("feedback").innerHTML = "";
+  document.getElementById("next-btn").classList.add("hidden");
+}
+
+/* The player pressed Enter or clicked "Check answer". */
+function submitAnswer() {
+  if (answered) return;
+  if (normalize(answerBox.value) === "") return;  // ignore an empty box
+
+  const country = deck[index];
+  const answer = displayAnswer(country, mode);
+  const result = judge(answerBox.value, country);
+
+  if (result === "exact") {
+    finishRound(true, "✅ Correct!");
+  } else if (result === "typo") {
+    finishRound(true,
+      "✅ Correct! <span class='note'>Spelled <strong>" +
+      answer + "</strong> — close enough.</span>");
+  } else {
+    finishRound(false, "❌ It was <strong>" + answer + "</strong>.");
+  }
+}
+
+/* The player gave up on this one. */
+function skipQuestion() {
+  if (answered) return;
+  finishRound(false,
+    "⏭️ Skipped — it was <strong>" +
+    displayAnswer(deck[index], mode) + "</strong>.");
+}
+
+/* Lock in the round, update the score, show the Next button. */
+function finishRound(gotItRight, message) {
+  answered = true;
+
+  if (gotItRight) {
+    score++;
+    answerBox.classList.add("correct");
+  } else {
+    answerBox.classList.add("wrong");
+    missed.push(deck[index]);
+  }
+
+  answerBox.disabled = true;
+  document.getElementById("check-btn").disabled = true;
+  document.getElementById("skip-btn").disabled = true;
+  document.getElementById("score").textContent = score;
+  document.getElementById("feedback").innerHTML = message;
+
+  const nextBtn = document.getElementById("next-btn");
+  nextBtn.classList.remove("hidden");
+  nextBtn.focus();
+}
+
+/* Move to the next question, or finish the game. */
+function nextQuestion() {
+  index++;
+  if (index >= deck.length) {
+    endGame();
+  } else {
+    showQuestion();
+  }
+}
+
+/* =========================================================
+   6. THE END SCREEN
+========================================================= */
+function endGame() {
+  showScreen("end-screen");
+  document.getElementById("final-score").textContent = score;
+
+  const percent = Math.round((score / deck.length) * 100);
+  let message;
+  if (percent >= 90)      message = "Incredible — you're a world expert! 🌟";
+  else if (percent >= 70) message = "Great job! You really know your stuff.";
+  else if (percent >= 50) message = "Solid effort — over half right!";
+  else                    message = "Nice try! Play again and you'll improve.";
+
+  document.getElementById("final-message").textContent =
+    "You scored " + percent + "%. " + message;
+
+  // List the ones that got away, so you can learn them.
+  const title = document.getElementById("missed-title");
+  const list = document.getElementById("missed-list");
+  list.innerHTML = "";
+
+  if (missed.length === 0) {
+    title.textContent = "A perfect run — you didn't miss a single one!";
+    list.classList.add("hidden");
+  } else {
+    title.textContent = "Ones to review (" + missed.length + "):";
+    list.classList.remove("hidden");
+    missed.forEach(function (country) {
+      const row = document.createElement("div");
+      row.className = "missed-row";
+      const label = mode === "capitals"
+        ? country.name + " <span class='answer'>— " + country.cap + "</span>"
+        : country.name;
+      row.innerHTML =
+        '<img src="https://flagcdn.com/w80/' + country.code + '.png" alt="">' +
+        "<span>" + label + "</span>";
+      list.appendChild(row);
+    });
+  }
+}
+
+/* =========================================================
+   7. THE REFERENCE LISTS ON THE START SCREEN
+========================================================= */
+
+/* Build the list of every answer you might need, for the current mode.
+   Deliberately no flag pictures and no country/capital pairings here —
+   either would give the game away. */
+function buildReferenceLists() {
+  const grid = document.getElementById("accepted-list");
+  grid.innerHTML = "";
+
+  // Sort by the answer itself, so capitals mode reads alphabetically too.
+  const rows = COUNTRIES.map(function (country) {
+    const answers = answersFor(country, mode);
+    const main = answers[0];
+    const key = normalize(main);
+    // Only show alternatives that are genuinely different names. Ones that
+    // are merely a different spelling would just be clutter, since
+    // near-misses are forgiven anyway.
+    const extras = answers.slice(1).filter(function (a) {
+      return editDistance(normalize(a), key) > 2;
+    });
+    return { main: main, extras: extras };
+  }).sort(function (a, b) { return a.main.localeCompare(b.main); });
+
+  rows.forEach(function (row) {
+    const div = document.createElement("div");
+    div.textContent = row.main;
+    if (row.extras.length) {
+      const alias = document.createElement("span");
+      alias.className = "alias";
+      alias.textContent = " · " + row.extras.join(", ");
+      div.appendChild(alias);
+    }
+    grid.appendChild(div);
+  });
+
+  document.getElementById("accepted-count").textContent = rows.length + " total";
+
+  const box = document.getElementById("excluded-list");
+  box.innerHTML = "";
+  NOT_IN_GAME[mode].forEach(function (group) {
+    const wrap = document.createElement("div");
+    wrap.className = "excluded-group";
+    const why = document.createElement("div");
+    why.className = "why";
+    why.textContent = group.why;
+    const items = document.createElement("div");
+    items.className = "items";
+    items.textContent = group.items.join(" · ");
+    wrap.appendChild(why);
+    wrap.appendChild(items);
+    box.appendChild(wrap);
+  });
+}
+
+/* =========================================================
+   8. KEYBOARD: Enter checks your answer, then Enter again
+      moves on to the next question.
+========================================================= */
+document.addEventListener("keydown", function (e) {
+  if (e.key !== "Enter") return;
+  if (document.getElementById("game-screen").classList.contains("hidden")) return;
+  e.preventDefault();
+  if (answered) {
+    nextQuestion();
+  } else {
+    submitAnswer();
+  }
+});
+
+/* Start out on the Flags version. */
+setMode("flags");
+</script>
+
+</body>
+</html>
