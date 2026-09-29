@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Priyasha Agarwal</title>
+<meta name="description" content="Priyasha Agarwal — student at the University of Pennsylvania.">
+
+<!--
+  ===========================================================
+  THINGS TO EDIT  —  everything below is a draft for you to
+  replace. Search for the word EDIT to jump between them.
+  ===========================================================
+    1. Your tagline, under your name
+    2. The About paragraphs
+    3. Your projects
+    4. Your experience and education
+    5. Your email and links  (I left these blank on purpose —
+       see the note in the Contact section)
+  Anything wrapped in [square brackets] is a blank I couldn't
+  fill in for you.
+  ===========================================================
+-->
+
+<style>
+  /* ---- The warm palette. Change these to restyle the whole page. ---- */
+  :root {
+    --paper:      #fbf7f0;   /* page background        */
+    --raised:     #ffffff;   /* cards                  */
+    --ink:        #33302b;   /* main text              */
+    --ink-soft:   #6b6459;   /* secondary text         */
+    --accent:     #b4543a;   /* links, highlights      */
+    --accent-pale:#f0e2db;   /* accent used as a wash  */
+    --line:       #e7ded1;   /* hairlines and borders  */
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  a { color: var(--accent); }
+
+  .wrap {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---------- sticky menu ---------- */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(251, 247, 240, 0.88);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .wrap {
+    display: flex;
+    gap: 26px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+  nav a {
+    text-decoration: none;
+    color: var(--ink-soft);
+    font-size: 15px;
+    padding-bottom: 2px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  nav a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ---------- header ---------- */
+  header { padding: 90px 0 70px; }
+  header h1 { font-size: 46px; margin: 0 0 14px; }
+  header .tagline {
+    font-size: 20px;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+    max-width: 34em;
+  }
+  header .place { font-size: 15px; color: var(--ink-soft); margin: 0; }
+
+  /* ---------- sections ---------- */
+  section { padding: 46px 0; border-top: 1px solid var(--line); }
+  section h2 {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+    margin: 0 0 26px;
+    font-family: system-ui, sans-serif;
+    font-weight: 600;
+  }
+  section p { margin: 0 0 18px; }
+  section p:last-child { margin-bottom: 0; }
+
+  /* ---------- projects ---------- */
+  .project {
+    display: block;
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+  }
+  a.project:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(180, 84, 58, 0.1);
+  }
+  .project h3 { font-size: 20px; margin: 0 0 6px; }
+  .project p { font-size: 15.5px; color: var(--ink-soft); margin: 0 0 12px; }
+  .project .tags { display: flex; flex-wrap: wrap; gap: 7px; }
+  .project .tag {
+    font-size: 12px;
+    background: var(--accent-pale);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+  .project .soon {
+    font-size: 12px;
+    background: var(--line);
+    color: var(--ink-soft);
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+
+  /* ---------- experience ---------- */
+  .entry {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .entry:last-child { border-bottom: none; }
+  .entry .when { font-size: 14px; color: var(--ink-soft); padding-top: 3px; }
+  .entry h3 { font-size: 18px; margin: 0 0 2px; }
+  .entry .where { font-size: 15px; color: var(--ink-soft); margin: 0 0 8px; }
+  .entry .what { font-size: 15.5px; margin: 0; }
+
+  /* ---------- contact ---------- */
+  .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .links a {
+    text-decoration: none;
+    border: 1px solid var(--line);
+    background: var(--raised);
+    border-radius: 99px;
+    padding: 9px 18px;
+    font-size: 15px;
+    color: var(--ink);
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .links a:hover { border-color: var(--accent); color: var(--accent); }
+
+  footer {
+    padding: 40px 0 60px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+
+  /* ---------- phones ---------- */
+  @media (max-width: 560px) {
+    header { padding: 60px 0 46px; }
+    header h1 { font-size: 36px; }
+    header .tagline { font-size: 18px; }
+    .entry { grid-template-columns: 1fr; gap: 4px; }
+    nav .wrap { gap: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="#about">About</a>
+    <a href="#projects">Projects</a>
+    <a href="#experience">Experience</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <header>
+    <h1>Priyasha Agarwal</h1>
+    <!-- EDIT 1: your tagline. One sentence on who you are and what you're into. -->
+    <p class="tagline">
+      Student at the University of Pennsylvania, learning to build things
+      on the web.
+    </p>
+    <p class="place">Philadelphia, PA</p>
+  </header>
+
+  <!-- ================= ABOUT ================= -->
+  <section id="about">
+    <h2>About</h2>
+    <!-- EDIT 2: replace both paragraphs with your own. -->
+    <p>
+      I'm a student at the University of Pennsylvania studying [your major].
+      I'm interested in [what you care about — the subjects, questions or
+      kinds of problems you like thinking about].
+    </p>
+    <p>
+      I recently started learning to code, and I've been building small
+      projects to figure out how things fit together. Outside of that, I
+      [something you do that isn't school].
+    </p>
+  </section>
+
+  <!-- ================= PROJECTS ================= -->
+  <section id="projects">
+    <h2>Projects</h2>
+
+    <!--
+      EDIT 3: your projects.
+      A project that links somewhere uses  <a class="project" href="...">
+      A project with nowhere to link yet uses  <div class="project">
+      Copy one of the blocks below to add another.
+    -->
+
+    <!-- This becomes a real link once we add the game to the site. -->
+    <div class="project">
+      <h3>Flags &amp; Capitals Quiz</h3>
+      <p>
+        A geography game covering all 197 countries. Shows you a flag and
+        asks for the country, or names a country and asks for its capital.
+        Forgives typos and alternative names without ever accepting a
+        genuinely wrong answer.
+      </p>
+      <div class="tags">
+        <span class="tag">HTML</span>
+        <span class="tag">CSS</span>
+        <span class="tag">JavaScript</span>
+        <span class="soon">Adding to this site soon</span>
+      </div>
+    </div>
+
+    <div class="project">
+      <h3>[Project name]</h3>
+      <p>
+        [A couple of sentences: what it is, why you made it, and what was
+        interesting or hard about it. Two or three lines is plenty.]
+      </p>
+      <div class="tags">
+        <span class="tag">[Tool or skill]</span>
+        <span class="tag">[Tool or skill]</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= EXPERIENCE ================= -->
+  <section id="experience">
+    <h2>Experience &amp; Education</h2>
+
+    <!-- EDIT 4: copy an .entry block for each role, club or degree. -->
+
+    <div class="entry">
+      <div class="when">[20XX – 20XX]</div>
+      <div>
+        <h3>University of Pennsylvania</h3>
+        <p class="where">[Your degree and major]</p>
+        <p class="what">
+          [Coursework, activities, anything you want to highlight.]
+        </p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="when">[Summer 20XX]</div>
+      <div>
+        <h3>[Job or internship title]</h3>
+        <p class="where">[Organisation]</p>
+        <p class="what">
+          [What you did and what came of it. One or two lines.]
+        </p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="when">[20XX – present]</div>
+      <div>
+        <h3>[Club, society or activity]</h3>
+        <p class="where">[Your role]</p>
+        <p class="what">[What you do there.]</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONTACT ================= -->
+  <section id="contact">
+    <h2>Contact</h2>
+    <p>
+      [One friendly line — what you'd like to hear about, or just
+      "the best way to reach me is by email."]
+    </p>
+
+    <!--
+      EDIT 5: your links.
+      I left these blank deliberately — putting an email address on a
+      public page invites spam, so I didn't want to publish yours
+      without asking. Tell me which of these you want and I'll fill
+      them in, or replace the # yourself:
+        email     -> href="mailto:you@example.com"
+        LinkedIn  -> href="https://www.linkedin.com/in/your-handle"
+        GitHub    -> href="https://github.com/your-username"
+      Delete any line you don't want.
+    -->
+    <div class="links">
+      <a href="#">Email</a>
+      <a href="#">LinkedIn</a>
+      <a href="#">GitHub</a>
+    </div>
+  </section>
+
+  <footer>
+    © <span id="year"></span> Priyasha Agarwal
+  </footer>
+
+</div>
+
+<script>
+  // Keeps the year in the footer correct without you touching it.
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>

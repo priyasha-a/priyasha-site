@@ -1,0 +1,13 @@
+# Files Windows and macOS scatter around that don't belong on a website.
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor scratch files.
+*.swp
+*~
+
+# Anything you want to keep off the public site can go here.
+# One filename per line, for example:
+# notes.txt
+# drafts/
