@@ -4,21 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Priyasha Agarwal</title>
-<meta name="description" content="Priyasha Agarwal — student at the University of Pennsylvania.">
+<meta name="description" content="Priyasha Agarwal — MBA candidate at the Wharton School, majoring in Artificial Intelligence for Business. Previously a consultant at Bain &amp; Company.">
 
 <!--
   ===========================================================
-  THINGS TO EDIT  —  everything below is a draft for you to
-  replace. Search for the word EDIT to jump between them.
-  ===========================================================
-    1. Your tagline, under your name
-    2. The About paragraphs
-    3. Your projects
-    4. Your experience and education
-    5. Your email and links  (I left these blank on purpose —
-       see the note in the Contact section)
-  Anything wrapped in [square brackets] is a blank I couldn't
-  fill in for you.
+  Priyasha Agarwal — personal site
+  Plain HTML and CSS. No build step: open this file in a
+  browser to see it exactly as it appears online.
+
+  The page is in five parts, in this order:
+    header      your name and tagline
+    #about      a few paragraphs
+    #projects   one card per project
+    #experience one .entry block per role, newest first
+    #contact    the links row
+  Colours all live in the :root block at the top of the CSS.
   ===========================================================
 -->
 
@@ -211,10 +211,9 @@
 
   <header>
     <h1>Priyasha Agarwal</h1>
-    <!-- EDIT 1: your tagline. One sentence on who you are and what you're into. -->
     <p class="tagline">
-      Student at the University of Pennsylvania, learning to build things
-      on the web.
+      MBA candidate at the Wharton School, majoring in Artificial
+      Intelligence for Business. Previously a consultant at Bain &amp; Company.
     </p>
     <p class="place">Philadelphia, PA</p>
   </header>
@@ -222,16 +221,23 @@
   <!-- ================= ABOUT ================= -->
   <section id="about">
     <h2>About</h2>
-    <!-- EDIT 2: replace both paragraphs with your own. -->
     <p>
-      I'm a student at the University of Pennsylvania studying [your major].
-      I'm interested in [what you care about — the subjects, questions or
-      kinds of problems you like thinking about].
+      I'm an MBA candidate at the Wharton School, where I'm majoring in
+      Artificial Intelligence for Business. Before Wharton I spent three
+      years at Bain &amp; Company in San Francisco, working on go-to-market
+      strategy, pricing, and technology due diligence — mostly for software
+      and consumer companies.
     </p>
     <p>
-      I recently started learning to code, and I've been building small
-      projects to figure out how things fit together. Outside of that, I
-      [something you do that isn't school].
+      Before that I studied Economics and Statistics &amp; Data Science at
+      UC Santa Barbara. I'm interested in what actually changes when AI
+      lands inside a business: how products get sold, how teams are
+      organised, and which of those changes turn out to matter.
+    </p>
+    <p>
+      Outside of that I dance, play a great deal of GeoGuessr, and have a
+      weakness for cryptograms and killer sudokus. The flag quiz below
+      started as a way to get better at the geography half of that.
     </p>
   </section>
 
@@ -261,53 +267,78 @@
       </div>
     </a>
 
-    <div class="project">
-      <h3>[Project name]</h3>
-      <p>
-        [A couple of sentences: what it is, why you made it, and what was
-        interesting or hard about it. Two or three lines is plenty.]
-      </p>
-      <div class="tags">
-        <span class="tag">[Tool or skill]</span>
-        <span class="tag">[Tool or skill]</span>
-      </div>
-    </div>
+    <!--
+      To add another project, copy the block above. Use
+      <a class="project" href="..."> if it links somewhere,
+      or <div class="project"> if it doesn't.
+    -->
   </section>
 
   <!-- ================= EXPERIENCE ================= -->
   <section id="experience">
     <h2>Experience &amp; Education</h2>
 
-    <!-- EDIT 4: copy an .entry block for each role, club or degree. -->
+    <!-- Copy an .entry block to add a role. Newest first. -->
 
     <div class="entry">
-      <div class="when">[20XX – 20XX]</div>
+      <div class="when">2026 – 2028</div>
       <div>
-        <h3>University of Pennsylvania</h3>
-        <p class="where">[Your degree and major]</p>
+        <h3>The Wharton School, University of Pennsylvania</h3>
+        <p class="where">MBA Candidate — Artificial Intelligence for Business</p>
         <p class="what">
-          [Coursework, activities, anything you want to highlight.]
+          Tech Club, AI &amp; Analytics Club, Golub Capital Board Fellow.
         </p>
       </div>
     </div>
 
     <div class="entry">
-      <div class="when">[Summer 20XX]</div>
+      <div class="when">2026</div>
       <div>
-        <h3>[Job or internship title]</h3>
-        <p class="where">[Organisation]</p>
+        <h3>Palo Alto Networks</h3>
+        <p class="where">GTM Strategy Extern · Santa Clara, CA</p>
         <p class="what">
-          [What you did and what came of it. One or two lines.]
+          Product launch strategy and partner enablement across sales and
+          partner teams.
         </p>
       </div>
     </div>
 
     <div class="entry">
-      <div class="when">[20XX – present]</div>
+      <div class="when">2023 – 2026</div>
       <div>
-        <h3>[Club, society or activity]</h3>
-        <p class="where">[Your role]</p>
-        <p class="what">[What you do there.]</p>
+        <h3>Bain &amp; Company</h3>
+        <p class="where">Consultant · San Francisco, CA</p>
+        <p class="what">
+          Go-to-market strategy, pricing, corporate strategy and technology
+          due diligence for software, utilities and consumer clients.
+        </p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="when">2023</div>
+      <div>
+        <h3>Golden Hippo</h3>
+        <p class="where">Business Development Intern · Woodland Hills, CA</p>
+        <p class="what">
+          Publisher partnerships and media buying, managing accounts
+          end to end.
+        </p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="when">2019 – 2022</div>
+      <div>
+        <h3>University of California, Santa Barbara</h3>
+        <p class="where">
+          B.A. Economics and B.A. Statistics &amp; Data Science,
+          Minor in Applied Psychology
+        </p>
+        <p class="what">
+          President of 180 Degrees Consulting; Operations Director of the
+          Data Science Club.
+        </p>
       </div>
     </div>
   </section>
@@ -316,8 +347,8 @@
   <section id="contact">
     <h2>Contact</h2>
     <p>
-      [One friendly line — what you'd like to hear about, or just
-      "the best way to reach me is by email."]
+      I'm always glad to hear from people working on AI, strategy, or
+      anything unexpected. Email is the best way to reach me.
     </p>
 
     <!-- EDIT 5: your links. Delete any line you don't want. -->
