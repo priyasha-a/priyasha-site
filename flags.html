@@ -21,9 +21,14 @@
 
   .page { width: 100%; max-width: 620px; }
 
-  .back-link {
-    display: inline-block;
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 14px;
+  }
+
+  .back-link {
     padding: 4px 2px;
     font-size: 14px;
     color: #8da2bd;
@@ -31,6 +36,48 @@
     transition: color 0.15s;
   }
   .back-link:hover { color: #fff; }
+
+  .restart-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #8da2bd;
+    font-size: 13.5px;
+    padding: 6px 15px;
+    border-radius: 99px;
+  }
+  .restart-btn:hover:not(:disabled) {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  /* Second tap confirms — no pop-up dialog needed. */
+  .restart-btn.armed {
+    border-color: #f59e0b;
+    color: #fcd34d;
+    background: rgba(245, 158, 11, 0.12);
+  }
+
+  /* ---- "you left a game running" panel on the menu ---- */
+  .resume-panel {
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 14px;
+    padding: 15px 16px;
+    margin-bottom: 22px;
+    text-align: left;
+  }
+  .resume-panel .r-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7dd3fc;
+    font-weight: 600;
+    margin: 0 0 5px;
+  }
+  .resume-panel .r-detail { font-size: 15.5px; margin: 0 0 12px; }
+  .resume-panel .r-detail .where { color: #94a3b8; font-size: 14px; }
+  .resume-panel .r-actions { display: flex; gap: 8px; }
+  .resume-panel .r-actions button { padding: 10px 16px; font-size: 14.5px; }
+  .resume-panel .r-actions .primary { flex: 1; }
 
   /* The game itself — the only part that gets the raised panel. */
   .card {
@@ -369,14 +416,27 @@
 <div class="page">
 
 <!-- Only useful once you're playing — hidden on the menu itself. -->
-<a class="back-link hidden" id="back-link" href="#"
-   onclick="goHome(); return false;">← Back to menu</a>
+<div class="top-row hidden" id="top-row">
+  <a class="back-link" href="#" onclick="goHome(); return false;">← Back to menu</a>
+  <button class="restart-btn" id="restart-btn" onclick="restartGame()">↻ Restart</button>
+</div>
 
 <!-- Everything you actually play with lives in the raised card. -->
 <div class="card">
 
   <!-- ===== START SCREEN ===== -->
   <div id="start-screen">
+
+    <!-- Shown only when a half-finished game is waiting. -->
+    <div class="resume-panel hidden" id="resume-panel">
+      <p class="r-title">Game in progress</p>
+      <p class="r-detail" id="resume-detail"></p>
+      <div class="r-actions">
+        <button class="primary" onclick="resumeGame()">Resume</button>
+        <button onclick="discardProgress()">Discard</button>
+      </div>
+    </div>
+
     <div class="mode-toggle">
       <button id="mode-flags" onclick="setMode('flags')">Flags</button>
       <button id="mode-capitals" onclick="setMode('capitals')">Capitals</button>
@@ -1285,9 +1345,124 @@ function showScreen(id) {
   });
   document.getElementById("reference")
     .classList.toggle("hidden", id !== "start-screen");
-  // No point offering a way back to the menu while you're on it.
-  document.getElementById("back-link")
-    .classList.toggle("hidden", id === "start-screen");
+  // Back and Restart are only useful once you're actually playing.
+  document.getElementById("top-row")
+    .classList.toggle("hidden", id !== "game-screen");
+  disarmRestart();
+}
+
+/* =========================================================
+   3b. SAVING A HALF-FINISHED GAME
+   Kept in the browser's own storage, so leaving the menu —
+   or closing the tab entirely — doesn't lose your place.
+========================================================= */
+const SAVE_KEY = "flags-quiz-progress-v1";
+
+/* Private browsing, blocked cookies and local files all refuse
+   localStorage. Fall back to an ordinary object so resuming still
+   works for as long as the page stays open — it just won't survive
+   closing the tab. */
+const store = (function () {
+  try {
+    localStorage.setItem("__probe", "1");
+    localStorage.removeItem("__probe");
+    return localStorage;
+  } catch (e) {
+    let memory = {};
+    return {
+      getItem: function (k) { return k in memory ? memory[k] : null; },
+      setItem: function (k, v) { memory[k] = String(v); },
+      removeItem: function (k) { delete memory[k]; }
+    };
+  }
+})();
+
+function saveProgress() {
+  const codes = function (list) { return list.map(function (c) { return c.code; }); };
+  try {
+    store.setItem(SAVE_KEY, JSON.stringify({
+      mode: mode,
+      level: level,
+      deck: codes(deck),
+      index: index,
+      score: score,
+      firstTry: firstTry,
+      hinted: codes(hinted),
+      missed: codes(missed)
+    }));
+  } catch (e) {
+    // Storage full, say. Losing the save is better than breaking the game.
+  }
+}
+
+function loadProgress() {
+  let saved;
+  try {
+    saved = JSON.parse(store.getItem(SAVE_KEY));
+  } catch (e) { return null; }
+  if (!saved || !saved.deck || !saved.deck.length) return null;
+  // Only worth offering if it's genuinely part-finished — some answered,
+  // and some still to go.
+  if (!saved.index || saved.index >= saved.deck.length) return null;
+  return saved;
+}
+
+function discardProgress() {
+  try { store.removeItem(SAVE_KEY); } catch (e) {}
+  refreshResumePanel();
+}
+
+/* Turn a list of saved country codes back into country objects.
+   Returns null if anything no longer matches. */
+function codesToCountries(codes) {
+  const out = [];
+  for (const code of codes) {
+    const found = COUNTRIES.find(function (c) { return c.code === code; });
+    if (!found) return null;
+    out.push(found);
+  }
+  return out;
+}
+
+/* Show or hide the "you left a game running" panel. */
+function refreshResumePanel() {
+  const saved = loadProgress();
+  const panel = document.getElementById("resume-panel");
+  if (!saved) {
+    panel.classList.add("hidden");
+    return;
+  }
+  const levelName = { 1: "Easy", 2: "Medium", 3: "Hard", 0: "All" }[saved.level];
+  const modeName = saved.mode === "capitals" ? "Capitals" : "Flags";
+  document.getElementById("resume-detail").innerHTML =
+    "<strong>" + saved.index + " of " + saved.deck.length + "</strong> answered" +
+    "<span class='where'> · " + modeName + " · " + levelName + "</span>";
+  panel.classList.remove("hidden");
+}
+
+function resumeGame() {
+  const saved = loadProgress();
+  if (!saved) return;
+
+  const savedDeck = codesToCountries(saved.deck);
+  const savedHinted = codesToCountries(saved.hinted || []);
+  const savedMissed = codesToCountries(saved.missed || []);
+  if (!savedDeck || !savedHinted || !savedMissed) { discardProgress(); return; }
+
+  setMode(saved.mode);
+  setLevel(saved.level);
+
+  deck = savedDeck;
+  hinted = savedHinted;
+  missed = savedMissed;
+  index = saved.index;
+  score = saved.score;
+  firstTry = saved.firstTry;
+
+  document.getElementById("total-num").textContent = deck.length;
+  document.getElementById("final-total").textContent = deck.length;
+  showScreen("game-screen");
+  showQuestion();
 }
 
 /* =========================================================
@@ -1367,14 +1542,43 @@ function labelLevels() {
   document.getElementById("level-0").querySelector(".n").textContent = COUNTRIES.length;
 }
 
+/* Leaving mid-game keeps your place; leaving a finished game doesn't. */
 function goHome() {
+  // Nothing answered yet means there's nothing worth resuming.
+  const playing = !document.getElementById("game-screen").classList.contains("hidden");
+  if (playing && deck.length && index > 0 && index < deck.length) saveProgress();
   showScreen("start-screen");
+  refreshResumePanel();
+}
+
+/* Restart needs two taps, so a stray click can't wipe a long run. */
+let restartArmed = false;
+
+function disarmRestart() {
+  restartArmed = false;
+  const btn = document.getElementById("restart-btn");
+  btn.textContent = "↻ Restart";
+  btn.classList.remove("armed");
+}
+
+function restartGame() {
+  const btn = document.getElementById("restart-btn");
+  if (!restartArmed) {
+    restartArmed = true;
+    btn.textContent = "↻ Sure?";
+    btn.classList.add("armed");
+    setTimeout(function () { if (restartArmed) disarmRestart(); }, 4000);
+    return;
+  }
+  disarmRestart();
+  startGame();
 }
 
 /* =========================================================
    5. PLAYING
 ========================================================= */
 function startGame() {
+  discardProgress();   // a fresh run replaces any half-finished one
   deck = shuffle(activeCountries());
   index = 0;
   score = 0;
@@ -1526,6 +1730,7 @@ function nextQuestion() {
   if (index >= deck.length) {
     endGame();
   } else {
+    saveProgress();   // so closing the tab doesn't lose your place either
     showQuestion();
   }
 }
@@ -1534,6 +1739,7 @@ function nextQuestion() {
    6. THE END SCREEN
 ========================================================= */
 function endGame() {
+  discardProgress();   // finished, so there's nothing left to resume
   showScreen("end-screen");
   document.getElementById("final-score").textContent = score;
 
@@ -1664,10 +1870,11 @@ document.addEventListener("keydown", function (e) {
   }
 });
 
-/* Start out on Flags, Easy. */
+/* Start out on Flags, Easy — and offer to pick up any unfinished run. */
 labelLevels();
 setLevel(1);
 setMode("flags");
+refreshResumePanel();
 </script>
 
 </body>
