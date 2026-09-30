@@ -19,12 +19,8 @@
     padding: 20px;
   }
 
-  .page {
-    width: 100%;
-    max-width: 620px;
-  }
+  .page { width: 100%; max-width: 620px; }
 
-  /* Way back to the main site. */
   .back-link {
     display: inline-block;
     margin-bottom: 14px;
@@ -54,7 +50,7 @@
     background: rgba(0, 0, 0, 0.28);
     padding: 4px;
     border-radius: 99px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
   .mode-toggle button {
     border: none;
@@ -72,6 +68,46 @@
     background: #6366f1;
     color: #fff;
     font-weight: 600;
+  }
+
+  /* ---- difficulty picker ---- */
+  .level-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #8da2bd;
+    margin: 0 0 8px;
+  }
+  .levels {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .levels button {
+    padding: 11px 6px;
+    font-size: 14px;
+    line-height: 1.3;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+  }
+  .levels button .n {
+    display: block;
+    font-size: 11.5px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+  .levels button.active {
+    background: rgba(99, 102, 241, 0.32);
+    border-color: #818cf8;
+    font-weight: 600;
+  }
+  .levels button.active .n { color: #c7d2fe; }
+  .level-blurb {
+    font-size: 13px;
+    color: #94a3b8;
+    margin: 0 0 20px;
+    min-height: 19px;
   }
 
   .stats {
@@ -143,6 +179,7 @@
   .answer-input:disabled { opacity: 0.6; }
   .answer-input.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
   .answer-input.wrong   { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
+  .answer-input.retry   { border-color: #f59e0b; background: rgba(245, 158, 11, 0.14); }
 
   .btn-row { display: flex; gap: 10px; margin-top: 12px; }
 
@@ -172,7 +209,7 @@
   .primary:hover:not(:disabled) { background: #4f46e5; }
 
   .feedback {
-    min-height: 48px;
+    min-height: 26px;
     margin-top: 16px;
     font-size: 16px;
     font-weight: 600;
@@ -185,15 +222,38 @@
     color: #cbd5e1;
     margin-top: 4px;
   }
+  .feedback .hint-line {
+    display: block;
+    font-weight: 400;
+    font-size: 15px;
+    color: #fcd34d;
+    margin-top: 6px;
+  }
+  .feedback .hint-line strong {
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  /* the memory aid */
+  .tip {
+    margin-top: 14px;
+    padding: 12px 15px;
+    background: rgba(167, 139, 250, 0.12);
+    border-left: 3px solid #a78bfa;
+    border-radius: 8px;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: #ddd6fe;
+    text-align: left;
+  }
+  .tip b { color: #fff; }
 
   .hidden { display: none; }
 
   .big-score { font-size: 46px; font-weight: 700; margin: 12px 0; }
   .sub { color: #cbd5e1; font-size: 15px; line-height: 1.6; }
 
-  /* ---- reference lists, below the card and intentionally low-key ----
-     No panel, no border, dimmer text: it should read as a footnote
-     you can consult, not as part of the game. */
+  /* ---- reference lists, below the card and intentionally low-key ---- */
   .reference { padding: 4px 4px 0; }
 
   .ref-section { margin-top: 30px; text-align: left; }
@@ -252,7 +312,7 @@
 
   /* ---- end-of-game review list ---- */
   .missed-list {
-    max-height: 260px;
+    max-height: 280px;
     overflow-y: auto;
     text-align: left;
     margin: 18px 0;
@@ -262,18 +322,32 @@
   }
   .missed-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
-    padding: 7px 10px;
+    padding: 9px 10px;
     font-size: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
+  .missed-row:last-child { border-bottom: none; }
   .missed-row img {
     width: 44px;
     height: 30px;
     object-fit: contain;
     flex-shrink: 0;
+    margin-top: 2px;
   }
   .missed-row .answer { color: #94a3b8; }
+  .missed-row .memo {
+    display: block;
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.45;
+    margin-top: 2px;
+  }
+
+  @media (max-width: 480px) {
+    .levels { grid-template-columns: repeat(2, 1fr); }
+  }
 </style>
 </head>
 <body>
@@ -295,6 +369,15 @@
     <h1 id="start-title"></h1>
     <p class="sub" id="start-blurb"></p>
     <p class="sub" style="font-size:14px;" id="start-hint"></p>
+
+    <p class="level-label">Difficulty</p>
+    <div class="levels">
+      <button id="level-1" onclick="setLevel(1)">Easy<span class="n"></span></button>
+      <button id="level-2" onclick="setLevel(2)">Medium<span class="n"></span></button>
+      <button id="level-3" onclick="setLevel(3)">Hard<span class="n"></span></button>
+      <button id="level-0" onclick="setLevel(0)">All<span class="n"></span></button>
+    </div>
+    <p class="level-blurb" id="level-blurb"></p>
 
     <button class="primary" onclick="startGame()">Start Game</button>
   </div>
@@ -328,6 +411,7 @@
     </div>
 
     <div class="feedback" id="feedback"></div>
+    <div class="tip hidden" id="tip"></div>
     <button class="primary hidden" id="next-btn" onclick="nextQuestion()">Next →</button>
   </div>
 
@@ -350,8 +434,6 @@
      and only shows on the menu. -->
 <div class="reference" id="reference">
 
-  <!-- The full pool of answers, built automatically from the data below
-       so it can never drift out of step with the actual game. -->
   <div class="ref-section">
     <h2>
       <span id="accepted-heading"></span>
@@ -361,7 +443,6 @@
     <div class="country-grid" id="accepted-list"></div>
   </div>
 
-  <!-- Common near-misses that deliberately aren't in the game. -->
   <div class="ref-section">
     <h2><span>Not in the game</span></h2>
     <p class="caption" id="excluded-caption"></p>
@@ -375,222 +456,617 @@
 <script>
 /* =========================================================
    1. THE DATA
-   code     - 2-letter code used to fetch the flag picture
-   alt      - other names for the COUNTRY that also count
-   cap      - the capital city
-   capAlt   - other names for the CAPITAL that also count
+   code    - 2-letter code used to fetch the flag picture
+   alt     - other names for the COUNTRY that also count
+   cap     - the capital city
+   capAlt  - other names for the CAPITAL that also count
+   tier    - 1 easy, 2 medium, 3 hard (how widely known it is)
+   ftip    - memory aid for the flag
+   ctip    - memory aid for the capital
    (Accents and punctuation are ignored automatically, so
     "Bogotá" and "bogota" never need a separate entry.)
 ========================================================= */
 const COUNTRIES = [
-  { name: "Afghanistan", code: "af", cap: "Kabul" },
-  { name: "Albania", code: "al", cap: "Tirana" },
-  { name: "Algeria", code: "dz", cap: "Algiers" },
-  { name: "Andorra", code: "ad", cap: "Andorra la Vella" },
-  { name: "Angola", code: "ao", cap: "Luanda" },
-  { name: "Antigua and Barbuda", code: "ag", alt: ["antigua"], cap: "Saint John's" },
-  { name: "Argentina", code: "ar", cap: "Buenos Aires" },
-  { name: "Armenia", code: "am", cap: "Yerevan" },
-  { name: "Australia", code: "au", cap: "Canberra" },
-  { name: "Austria", code: "at", cap: "Vienna", capAlt: ["wien"] },
-  { name: "Azerbaijan", code: "az", cap: "Baku" },
-  { name: "Bahamas", code: "bs", cap: "Nassau" },
-  { name: "Bahrain", code: "bh", cap: "Manama" },
-  { name: "Bangladesh", code: "bd", cap: "Dhaka" },
-  { name: "Barbados", code: "bb", cap: "Bridgetown" },
-  { name: "Belarus", code: "by", cap: "Minsk" },
-  { name: "Belgium", code: "be", cap: "Brussels" },
-  { name: "Belize", code: "bz", cap: "Belmopan" },
-  { name: "Benin", code: "bj", cap: "Porto-Novo", capAlt: ["cotonou"] },
-  { name: "Bhutan", code: "bt", cap: "Thimphu" },
-  { name: "Bolivia", code: "bo", cap: "Sucre", capAlt: ["la paz"] },
-  { name: "Bosnia and Herzegovina", code: "ba", alt: ["bosnia"], cap: "Sarajevo" },
-  { name: "Botswana", code: "bw", cap: "Gaborone" },
-  { name: "Brazil", code: "br", cap: "Brasília" },
-  { name: "Brunei", code: "bn", alt: ["brunei darussalam"], cap: "Bandar Seri Begawan" },
-  { name: "Bulgaria", code: "bg", cap: "Sofia" },
-  { name: "Burkina Faso", code: "bf", cap: "Ouagadougou" },
-  { name: "Burundi", code: "bi", cap: "Gitega" },
-  { name: "Cabo Verde", code: "cv", alt: ["cape verde"], cap: "Praia" },
-  { name: "Cambodia", code: "kh", alt: ["kampuchea"], cap: "Phnom Penh" },
-  { name: "Cameroon", code: "cm", cap: "Yaoundé" },
-  { name: "Canada", code: "ca", cap: "Ottawa" },
-  { name: "Central African Republic", code: "cf", alt: ["car"], cap: "Bangui" },
-  { name: "Chad", code: "td", cap: "N'Djamena", capAlt: ["ndjamena"] },
-  { name: "Chile", code: "cl", cap: "Santiago" },
-  { name: "China", code: "cn", alt: ["peoples republic of china", "prc"],
-    cap: "Beijing", capAlt: ["peking"] },
-  { name: "Colombia", code: "co", cap: "Bogotá" },
-  { name: "Comoros", code: "km", cap: "Moroni" },
+  { name: "Afghanistan", code: "af", cap: "Kabul", tier: 2,
+    ftip: "Black, red and green bands with a white mosque emblem in the middle.",
+    ctip: "Picture a <b>bull</b> loose in Ka<b>bul</b>." },
+  { name: "Albania", code: "al", cap: "Tirana", tier: 2,
+    ftip: "A black double-headed eagle on plain red — hard to confuse with anything.",
+    ctip: "<b>Tirana</b> sounds like <b>tiara</b> — Albania's crown." },
+  { name: "Algeria", code: "dz", cap: "Algiers", tier: 2,
+    ftip: "Green and white halves with a red crescent and star.",
+    ctip: "Algeri<b>a</b> → Algier<b>s</b>. Almost the same word." },
+  { name: "Andorra", code: "ad", cap: "Andorra la Vella", tier: 3,
+    ftip: "Blue, yellow and red with a crest — a tiny state wedged between France and Spain, so it borrows from both flags.",
+    ctip: "The capital is just the country's name with <b>la Vella</b> on the end." },
+  { name: "Angola", code: "ao", cap: "Luanda", tier: 3,
+    ftip: "Red over black with a machete and half cogwheel.",
+    ctip: "A <b>luau</b> on Angola's Atlantic beach → <b>Luanda</b>." },
+  { name: "Antigua and Barbuda", code: "ag", alt: ["antigua"], cap: "Saint John's", tier: 3,
+    ftip: "A rising golden sun on black, above red and white — sunrise over the Caribbean.",
+    ctip: "<b>Saint John's</b> — the same name as the capital of Newfoundland." },
+  { name: "Argentina", code: "ar", cap: "Buenos Aires", tier: 1,
+    ftip: "Two pale blue bands with a golden Sun of May in the centre. Uruguay's sun sits in a corner instead.",
+    ctip: "<b>Buenos Aires</b> is Spanish for <b>good airs</b>." },
+  { name: "Armenia", code: "am", cap: "Yerevan", tier: 2,
+    ftip: "Red, blue and apricot-orange bands.",
+    ctip: "<b>Yerevan</b> — you're-a-van driving through Armenia." },
+  { name: "Australia", code: "au", cap: "Canberra", tier: 1,
+    ftip: "Union Jack plus the Southern Cross and one large seven-pointed star. New Zealand's stars are red and there are only four.",
+    ctip: "Not Sydney. A kangaroo <b>can</b> hop to Can<b>berra</b>." },
+  { name: "Austria", code: "at", cap: "Vienna", tier: 1,
+    ftip: "Red-white-red in three equal bands. Latvia's red is darker and its white stripe is much thinner.",
+    ctip: "<b>Vienna</b> sausages come from Austria." },
+  { name: "Azerbaijan", code: "az", cap: "Baku", tier: 2,
+    ftip: "Blue, red and green with a crescent and an eight-pointed star.",
+    ctip: "<b>Baku</b> bakes on the Caspian Sea." },
+  { name: "Bahamas", code: "bs", cap: "Nassau", tier: 2,
+    ftip: "Aquamarine and gold stripes with a black triangle at the hoist — sea, sand and people.",
+    ctip: "<b>Nassau</b> is where the cruise ships dock." },
+  { name: "Bahrain", code: "bh", cap: "Manama", tier: 3,
+    ftip: "White and red with a five-pointed zigzag. Qatar's is maroon with nine points.",
+    ctip: "<b>Manama</b> — ma-NAMA, your mama's in Bahrain." },
+  { name: "Bangladesh", code: "bd", cap: "Dhaka", tier: 2,
+    ftip: "A red circle on green, set slightly left of centre. Japan's is on white and perfectly centred.",
+    ctip: "<b>Dhaka</b> rhymes with <b>docker</b> — a busy river port." },
+  { name: "Barbados", code: "bb", cap: "Bridgetown", tier: 3,
+    ftip: "Blue-gold-blue with a black trident head — the broken trident means a break from Britain.",
+    ctip: "<b>Bridgetown</b> — a very English name for a Caribbean capital." },
+  { name: "Belarus", code: "by", cap: "Minsk", tier: 2,
+    ftip: "Red over green with a red-and-white embroidery pattern running down the left edge.",
+    ctip: "<b>Mink</b> coats for the Belarusian winter → <b>Minsk</b>." },
+  { name: "Belgium", code: "be", cap: "Brussels", tier: 1,
+    ftip: "Black, yellow and red in vertical bands. Germany's are the same colours but horizontal.",
+    ctip: "<b>Brussels</b> sprouts." },
+  { name: "Belize", code: "bz", cap: "Belmopan", tier: 3,
+    ftip: "The only national flag with human beings on it — two woodcutters in the central crest.",
+    ctip: "<b>Bel</b>ize → <b>Bel</b>mopan. Both start the same." },
+  { name: "Benin", code: "bj", cap: "Porto-Novo", tier: 3,
+    ftip: "A green vertical band at the hoist, with yellow over red.",
+    ctip: "<b>Porto-Novo</b> is Portuguese for <b>new port</b>." },
+  { name: "Bhutan", code: "bt", cap: "Thimphu", tier: 3,
+    ftip: "A white dragon striding across a yellow-and-orange diagonal — the Land of the Thunder Dragon.",
+    ctip: "<b>Thimphu</b> sits high in the Himalayas." },
+  { name: "Bolivia", code: "bo", cap: "Sucre", capAlt: ["la paz"], tier: 2,
+    ftip: "Red, yellow and green with a coat of arms in the middle.",
+    ctip: "<b>Sucre</b> means <b>sugar</b> in French. La Paz also counts — Bolivia has two capitals." },
+  { name: "Bosnia and Herzegovina", code: "ba", alt: ["bosnia"], cap: "Sarajevo", tier: 2,
+    ftip: "Blue with a yellow triangle and a diagonal line of white stars.",
+    ctip: "<b>Sarajevo</b> hosted the 1984 Winter Olympics." },
+  { name: "Botswana", code: "bw", cap: "Gaborone", tier: 3,
+    ftip: "Light blue with a black stripe edged in white — water above all, in a dry country.",
+    ctip: "<b>Gaborone</b> — ga-ba-ROH-nee." },
+  { name: "Brazil", code: "br", cap: "Brasília", tier: 1,
+    ftip: "A yellow diamond on green with a blue globe reading <i>Ordem e Progresso</i>.",
+    ctip: "<b>Brazil</b> → <b>Brasília</b>. Not Rio." },
+  { name: "Brunei", code: "bn", alt: ["brunei darussalam"], cap: "Bandar Seri Begawan", tier: 3,
+    ftip: "Yellow with black and white diagonal stripes and a red crest.",
+    ctip: "<b>Bandar</b> means <b>port</b> across much of Asia." },
+  { name: "Bulgaria", code: "bg", cap: "Sofia", tier: 2,
+    ftip: "White, green, red. Hungary is red, white, green — the reverse order.",
+    ctip: "A girl named <b>Sofia</b> in Bulgaria." },
+  { name: "Burkina Faso", code: "bf", cap: "Ouagadougou", tier: 3,
+    ftip: "Red over green with a yellow star in the centre.",
+    ctip: "<b>Ouagadougou</b> — wah-ga-DOO-goo. The most fun capital to say." },
+  { name: "Burundi", code: "bi", cap: "Gitega", tier: 3,
+    ftip: "A white diagonal cross splitting red and green, with three red stars in the middle.",
+    ctip: "<b>Gitega</b> took over from Bujumbura in 2019." },
+  { name: "Cabo Verde", code: "cv", alt: ["cape verde"], cap: "Praia", tier: 3,
+    ftip: "Blue with a white-red-white stripe and a ring of ten stars for the ten islands.",
+    ctip: "<b>Praia</b> is Portuguese for <b>beach</b>." },
+  { name: "Cambodia", code: "kh", alt: ["kampuchea"], cap: "Phnom Penh", tier: 2,
+    ftip: "The only national flag showing a building: the temple of Angkor Wat.",
+    ctip: "<b>Phnom Penh</b> sits where four rivers meet." },
+  { name: "Cameroon", code: "cm", cap: "Yaoundé", tier: 2,
+    ftip: "Green, red and yellow vertical bands with a single yellow star in the centre.",
+    ctip: "<b>Yaoundé</b> — yah-oon-DAY." },
+  { name: "Canada", code: "ca", cap: "Ottawa", tier: 1,
+    ftip: "The red maple leaf between two red bands.",
+    ctip: "Not Toronto. <b>Ottawa</b> — oh, what a capital." },
+  { name: "Central African Republic", code: "cf", alt: ["car"], cap: "Bangui", tier: 3,
+    ftip: "Four horizontal stripes cut by a vertical red band, with a yellow star — it fuses French and Pan-African colours.",
+    ctip: "<b>Bangui</b> sits on the Ubangi River." },
+  { name: "Chad", code: "td", cap: "N'Djamena", tier: 3,
+    ftip: "Blue, yellow, red — nearly identical to Romania. Chad's blue is darker; Chad is in Africa, Romania in Europe.",
+    ctip: "<b>N'Djamena</b> — the apostrophe is the giveaway." },
+  { name: "Chile", code: "cl", cap: "Santiago", tier: 1,
+    ftip: "White over red with a blue square and one white star — like Texas, but the blue is a square, not a full band.",
+    ctip: "<b>Santiago</b> — Saint James." },
+  { name: "China", code: "cn", alt: ["peoples republic of china", "prc"], cap: "Beijing", capAlt: ["peking"], tier: 1,
+    ftip: "Red with one large yellow star and four small ones curving beside it.",
+    ctip: "<b>Beijing</b> — formerly spelled Peking, as in Peking duck." },
+  { name: "Colombia", code: "co", cap: "Bogotá", tier: 1,
+    ftip: "Yellow taking up the whole top half, with blue and red below. Ecuador's is the same but carries a condor crest.",
+    ctip: "<b>Bogotá</b> — boh-go-TAH, high in the Andes." },
+  { name: "Comoros", code: "km", cap: "Moroni", tier: 3,
+    ftip: "Four coloured stripes with a green triangle holding a crescent and four stars.",
+    ctip: "<b>Moroni</b> — like macaroni without the 'ca'." },
   { name: "Congo (Republic of the)", code: "cg",
     alt: ["congo", "republic of the congo", "congo brazzaville", "congo republic"],
-    cap: "Brazzaville" },
+    cap: "Brazzaville", tier: 3,
+    ftip: "A yellow diagonal stripe separating green and red.",
+    ctip: "The smaller Congo is <b>Brazzaville</b> — <b>B</b> for the briefer name." },
   { name: "Congo (Democratic Republic)", code: "cd",
     alt: ["dr congo", "drc", "democratic republic of the congo", "congo kinshasa", "zaire"],
-    cap: "Kinshasa" },
-  { name: "Costa Rica", code: "cr", cap: "San José" },
+    cap: "Kinshasa", tier: 2,
+    ftip: "Sky blue with a red diagonal stripe edged in yellow, and a yellow star.",
+    ctip: "The bigger Congo is <b>Kinshasa</b> — <b>K</b> for the larger, once called Zaire." },
+  { name: "Costa Rica", code: "cr", cap: "San José", tier: 2,
+    ftip: "Blue and white bands with a wide red one through the middle.",
+    ctip: "<b>San José</b> — the same name as the city in California." },
   { name: "Côte d'Ivoire", code: "ci", alt: ["ivory coast", "cote d ivoire"],
-    cap: "Yamoussoukro", capAlt: ["abidjan"] },
-  { name: "Croatia", code: "hr", cap: "Zagreb" },
-  { name: "Cuba", code: "cu", cap: "Havana", capAlt: ["la habana"] },
-  { name: "Cyprus", code: "cy", cap: "Nicosia" },
-  { name: "Czechia", code: "cz", alt: ["czech republic"], cap: "Prague", capAlt: ["praha"] },
-  { name: "Denmark", code: "dk", cap: "Copenhagen" },
-  { name: "Djibouti", code: "dj", cap: "Djibouti" },
-  { name: "Dominica", code: "dm", cap: "Roseau" },
-  { name: "Dominican Republic", code: "do", cap: "Santo Domingo" },
-  { name: "Ecuador", code: "ec", cap: "Quito" },
-  { name: "Egypt", code: "eg", cap: "Cairo" },
-  { name: "El Salvador", code: "sv", cap: "San Salvador" },
-  { name: "Equatorial Guinea", code: "gq", cap: "Malabo" },
-  { name: "Eritrea", code: "er", cap: "Asmara" },
-  { name: "Estonia", code: "ee", cap: "Tallinn" },
-  { name: "Eswatini", code: "sz", alt: ["swaziland"], cap: "Mbabane", capAlt: ["lobamba"] },
-  { name: "Ethiopia", code: "et", cap: "Addis Ababa" },
-  { name: "Fiji", code: "fj", cap: "Suva" },
-  { name: "Finland", code: "fi", cap: "Helsinki" },
-  { name: "France", code: "fr", cap: "Paris" },
-  { name: "Gabon", code: "ga", cap: "Libreville" },
-  { name: "Gambia", code: "gm", cap: "Banjul" },
-  { name: "Georgia", code: "ge", cap: "Tbilisi" },
-  { name: "Germany", code: "de", cap: "Berlin" },
-  { name: "Ghana", code: "gh", cap: "Accra" },
-  { name: "Greece", code: "gr", alt: ["hellas"], cap: "Athens" },
-  { name: "Grenada", code: "gd", cap: "Saint George's" },
-  { name: "Guatemala", code: "gt", cap: "Guatemala City" },
-  { name: "Guinea", code: "gn", cap: "Conakry" },
-  { name: "Guinea-Bissau", code: "gw", cap: "Bissau" },
-  { name: "Guyana", code: "gy", cap: "Georgetown" },
-  { name: "Haiti", code: "ht", cap: "Port-au-Prince" },
-  { name: "Honduras", code: "hn", cap: "Tegucigalpa" },
-  { name: "Hungary", code: "hu", cap: "Budapest" },
-  { name: "Iceland", code: "is", cap: "Reykjavík" },
-  { name: "India", code: "in", cap: "New Delhi", capAlt: ["delhi"] },
-  { name: "Indonesia", code: "id", cap: "Jakarta", capAlt: ["nusantara"] },
-  { name: "Iran", code: "ir", alt: ["islamic republic of iran", "persia"], cap: "Tehran" },
-  { name: "Iraq", code: "iq", cap: "Baghdad" },
-  { name: "Ireland", code: "ie", alt: ["republic of ireland", "eire"], cap: "Dublin" },
-  { name: "Israel", code: "il", cap: "Jerusalem" },
-  { name: "Italy", code: "it", cap: "Rome", capAlt: ["roma"] },
-  { name: "Jamaica", code: "jm", cap: "Kingston" },
-  { name: "Japan", code: "jp", cap: "Tokyo" },
-  { name: "Jordan", code: "jo", cap: "Amman" },
-  { name: "Kazakhstan", code: "kz", cap: "Astana", capAlt: ["nur sultan", "nursultan"] },
-  { name: "Kenya", code: "ke", cap: "Nairobi" },
-  { name: "Kiribati", code: "ki", cap: "Tarawa", capAlt: ["south tarawa"] },
-  { name: "Kosovo", code: "xk", alt: ["republic of kosovo"], cap: "Pristina", capAlt: ["prishtina"] },
-  { name: "Kuwait", code: "kw", cap: "Kuwait City" },
-  { name: "Kyrgyzstan", code: "kg", alt: ["kyrgyz republic"], cap: "Bishkek" },
-  { name: "Laos", code: "la", alt: ["lao", "lao pdr"], cap: "Vientiane" },
-  { name: "Latvia", code: "lv", cap: "Riga" },
-  { name: "Lebanon", code: "lb", cap: "Beirut" },
-  { name: "Lesotho", code: "ls", cap: "Maseru" },
-  { name: "Liberia", code: "lr", cap: "Monrovia" },
-  { name: "Libya", code: "ly", cap: "Tripoli" },
-  { name: "Liechtenstein", code: "li", cap: "Vaduz" },
-  { name: "Lithuania", code: "lt", cap: "Vilnius" },
-  { name: "Luxembourg", code: "lu", cap: "Luxembourg City", capAlt: ["luxembourg"] },
-  { name: "Madagascar", code: "mg", cap: "Antananarivo" },
-  { name: "Malawi", code: "mw", cap: "Lilongwe" },
-  { name: "Malaysia", code: "my", cap: "Kuala Lumpur", capAlt: ["putrajaya"] },
-  { name: "Maldives", code: "mv", cap: "Malé" },
-  { name: "Mali", code: "ml", cap: "Bamako" },
-  { name: "Malta", code: "mt", cap: "Valletta" },
-  { name: "Marshall Islands", code: "mh", cap: "Majuro" },
-  { name: "Mauritania", code: "mr", cap: "Nouakchott" },
-  { name: "Mauritius", code: "mu", cap: "Port Louis" },
-  { name: "Mexico", code: "mx", cap: "Mexico City", capAlt: ["ciudad de mexico", "cdmx"] },
-  { name: "Micronesia", code: "fm", alt: ["federated states of micronesia"], cap: "Palikir" },
-  { name: "Moldova", code: "md", alt: ["republic of moldova"], cap: "Chișinău", capAlt: ["kishinev"] },
-  { name: "Monaco", code: "mc", cap: "Monaco" },
-  { name: "Mongolia", code: "mn", cap: "Ulaanbaatar", capAlt: ["ulan bator"] },
-  { name: "Montenegro", code: "me", cap: "Podgorica" },
-  { name: "Morocco", code: "ma", cap: "Rabat" },
-  { name: "Mozambique", code: "mz", cap: "Maputo" },
-  { name: "Myanmar", code: "mm", alt: ["burma"], cap: "Naypyidaw", capAlt: ["nay pyi taw"] },
-  { name: "Namibia", code: "na", cap: "Windhoek" },
-  { name: "Nauru", code: "nr", cap: "Yaren" },
-  { name: "Nepal", code: "np", cap: "Kathmandu" },
-  { name: "Netherlands", code: "nl", cap: "Amsterdam", capAlt: ["the hague", "den haag"] },
-  { name: "New Zealand", code: "nz", cap: "Wellington" },
-  { name: "Nicaragua", code: "ni", cap: "Managua" },
-  { name: "Niger", code: "ne", cap: "Niamey" },
-  { name: "Nigeria", code: "ng", cap: "Abuja" },
-  { name: "North Korea", code: "kp", alt: ["dprk", "democratic peoples republic of korea"],
-    cap: "Pyongyang" },
-  { name: "North Macedonia", code: "mk", alt: ["macedonia"], cap: "Skopje" },
-  { name: "Norway", code: "no", cap: "Oslo" },
-  { name: "Oman", code: "om", cap: "Muscat" },
-  { name: "Pakistan", code: "pk", cap: "Islamabad" },
-  { name: "Palau", code: "pw", cap: "Ngerulmud" },
+    cap: "Yamoussoukro", capAlt: ["abidjan"], tier: 2,
+    ftip: "Orange, white, green — Ireland's flag in reverse.",
+    ctip: "<b>Yamoussoukro</b> is official; <b>Abidjan</b> is the big city. Both count." },
+  { name: "Croatia", code: "hr", cap: "Zagreb", tier: 2,
+    ftip: "Red, white and blue with a red-and-white chequerboard shield — the same pattern as the football shirts.",
+    ctip: "<b>Zagreb</b> is inland — the famous coast is Split and Dubrovnik." },
+  { name: "Cuba", code: "cu", cap: "Havana", capAlt: ["la habana"], tier: 1,
+    ftip: "Five stripes with a red triangle and a white star. Puerto Rico's is the same design with the red and blue swapped.",
+    ctip: "<b>Havana</b> cigars." },
+  { name: "Cyprus", code: "cy", cap: "Nicosia", tier: 2,
+    ftip: "White with a copper-coloured map of the island itself — copper is where the island's name comes from.",
+    ctip: "<b>Nicosia</b> is the last divided capital in Europe." },
+  { name: "Czechia", code: "cz", alt: ["czech republic"], cap: "Prague", capAlt: ["praha"], tier: 2,
+    ftip: "White over red with a blue triangle at the hoist. Poland is the same two bands with no triangle.",
+    ctip: "<b>Prague</b> — locally Praha. Careful: Praia is Cabo Verde." },
+  { name: "Denmark", code: "dk", cap: "Copenhagen", tier: 1,
+    ftip: "A white Nordic cross on red — the oldest national flag still in use.",
+    ctip: "<b>Copenhagen</b> — a Danish pastry in a harbour." },
+  { name: "Djibouti", code: "dj", cap: "Djibouti", tier: 3,
+    ftip: "Light blue over green with a white triangle and a red star.",
+    ctip: "City and country share a name — a freebie." },
+  { name: "Dominica", code: "dm", cap: "Roseau", tier: 3,
+    ftip: "The only national flag containing purple — the sisserou parrot in the centre.",
+    ctip: "<b>Roseau</b> — like a rose, on the smaller Dominica." },
+  { name: "Dominican Republic", code: "do", cap: "Santo Domingo", tier: 2,
+    ftip: "The only national flag with a Bible on it, at the centre of a white cross.",
+    ctip: "Santo <b>Domingo</b> → <b>Domin</b>ican. The name is inside the country." },
+  { name: "Ecuador", code: "ec", cap: "Quito", tier: 2,
+    ftip: "Yellow, blue and red like Colombia, but with a condor and shield in the middle.",
+    ctip: "<b>Quito</b> sits almost exactly on the equator — which is what Ecuador means." },
+  { name: "Egypt", code: "eg", cap: "Cairo", tier: 1,
+    ftip: "Red, white and black with the golden Eagle of Saladin.",
+    ctip: "<b>Cairo</b> — beside the pyramids at Giza." },
+  { name: "El Salvador", code: "sv", cap: "San Salvador", tier: 2,
+    ftip: "Blue-white-blue with a coat of arms — a triangle inside a laurel wreath.",
+    ctip: "The country's own name with <b>San</b> in front." },
+  { name: "Equatorial Guinea", code: "gq", cap: "Malabo", tier: 3,
+    ftip: "Green, white and red with a blue triangle and a silk-cotton tree crest.",
+    ctip: "<b>Malabo</b> is on an island, not the mainland." },
+  { name: "Eritrea", code: "er", cap: "Asmara", tier: 3,
+    ftip: "A red triangle holding a golden olive wreath, with green above and blue below.",
+    ctip: "<b>Asmara</b> — careful, Ankara is Turkey." },
+  { name: "Estonia", code: "ee", cap: "Tallinn", tier: 2,
+    ftip: "Blue, black and white — the only European tricolour with a black middle band.",
+    ctip: "A <b>tall inn</b> in Estonia → <b>Tallinn</b>." },
+  { name: "Eswatini", code: "sz", alt: ["swaziland"], cap: "Mbabane", capAlt: ["lobamba"], tier: 3,
+    ftip: "Blue and red bands with a black-and-white Nguni shield and two spears lying sideways.",
+    ctip: "<b>Mbabane</b> is the administrative capital; Lobamba is the royal one." },
+  { name: "Ethiopia", code: "et", cap: "Addis Ababa", tier: 2,
+    ftip: "Green, yellow and red with a blue disc and gold star — the original Pan-African colours every other flag borrowed.",
+    ctip: "<b>Addis Ababa</b> means <b>new flower</b>." },
+  { name: "Fiji", code: "fj", cap: "Suva", tier: 2,
+    ftip: "Light blue with a Union Jack and a shield showing sugarcane and a dove.",
+    ctip: "<b>Suva</b> — soo-va, four letters." },
+  { name: "Finland", code: "fi", cap: "Helsinki", tier: 1,
+    ftip: "A blue Nordic cross on white — blue for the thousands of lakes.",
+    ctip: "<b>Helsinki</b> — hel-SINK-y, sinking into the Baltic." },
+  { name: "France", code: "fr", cap: "Paris", tier: 1,
+    ftip: "Blue, white and red vertical bands — the original tricolour.",
+    ctip: "<b>Paris</b>, on the Seine. Every French road distance is measured from its centre." },
+  { name: "Gabon", code: "ga", cap: "Libreville", tier: 3,
+    ftip: "Green, yellow and blue in three plain horizontal bands.",
+    ctip: "<b>Libreville</b> is French for <b>free town</b> — founded by freed slaves." },
+  { name: "Gambia", code: "gm", cap: "Banjul", tier: 3,
+    ftip: "Red, blue and green separated by thin white lines — the blue band is the Gambia River, which the whole country wraps around.",
+    ctip: "<b>Banjul</b> — like a banjo with an L." },
+  { name: "Georgia", code: "ge", cap: "Tbilisi", tier: 2,
+    ftip: "A large red cross with four smaller crosses in the corners, all on white.",
+    ctip: "<b>Tbilisi</b> — a rare capital starting with two consonants." },
+  { name: "Germany", code: "de", cap: "Berlin", tier: 1,
+    ftip: "Black, red and gold horizontal bands. Belgium uses the same colours vertically.",
+    ctip: "<b>Berlin</b> — split by a wall until 1989. Not Munich or Frankfurt." },
+  { name: "Ghana", code: "gh", cap: "Accra", tier: 2,
+    ftip: "Red, yellow and green with a black star in the middle — the first African state to use Ethiopia's colours after independence.",
+    ctip: "<b>Accra</b> — a-CRA, on the Gulf of Guinea." },
+  { name: "Greece", code: "gr", alt: ["hellas"], cap: "Athens", tier: 1,
+    ftip: "Nine blue and white stripes with a white cross in the corner.",
+    ctip: "<b>Athens</b>, named for Athena." },
+  { name: "Grenada", code: "gd", cap: "Saint George's", tier: 3,
+    ftip: "A red border with yellow and green triangles, and a nutmeg on the left — Grenada is the spice island.",
+    ctip: "<b>Saint George's</b> — England's patron saint in the Caribbean." },
+  { name: "Guatemala", code: "gt", cap: "Guatemala City", tier: 2,
+    ftip: "Blue-white-blue vertical bands with a quetzal bird and crossed rifles.",
+    ctip: "The country's own name plus <b>City</b>." },
+  { name: "Guinea", code: "gn", cap: "Conakry", tier: 3,
+    ftip: "Red, yellow, green vertical bands — Mali's three colours in reverse order.",
+    ctip: "<b>Conakry</b> — CON-a-kree." },
+  { name: "Guinea-Bissau", code: "gw", cap: "Bissau", tier: 3,
+    ftip: "A red vertical band with a black star, plus yellow and green.",
+    ctip: "The capital is hiding in the country's name: Guinea-<b>Bissau</b>." },
+  { name: "Guyana", code: "gy", cap: "Georgetown", tier: 3,
+    ftip: "The Golden Arrowhead — a yellow arrow pointing across green, edged in white, with a red triangle.",
+    ctip: "<b>Georgetown</b> — the same name as the university in Washington." },
+  { name: "Haiti", code: "ht", cap: "Port-au-Prince", tier: 2,
+    ftip: "Blue over red with a white square holding a palm tree crest.",
+    ctip: "<b>Port-au-Prince</b> — the prince's port." },
+  { name: "Honduras", code: "hn", cap: "Tegucigalpa", tier: 2,
+    ftip: "Blue-white-blue with five blue stars scattered in the centre.",
+    ctip: "<b>Tegucigalpa</b> — te-goo-si-GAL-pa. A mouthful worth drilling." },
+  { name: "Hungary", code: "hu", cap: "Budapest", tier: 2,
+    ftip: "Red, white, green. Bulgaria is white, green, red — same three colours, different order.",
+    ctip: "<b>Buda</b> and <b>Pest</b> — two towns on opposite banks of the Danube." },
+  { name: "Iceland", code: "is", cap: "Reykjavík", tier: 1,
+    ftip: "A red cross inside a white cross on blue — Norway's colours rearranged.",
+    ctip: "<b>Reykjavík</b> means <b>smoky bay</b>, from the geothermal steam." },
+  { name: "India", code: "in", cap: "New Delhi", capAlt: ["delhi"], tier: 1,
+    ftip: "Saffron, white and green with the navy Ashoka Chakra wheel. Niger's has a plain orange circle instead.",
+    ctip: "<b>New</b> Delhi, not Mumbai." },
+  { name: "Indonesia", code: "id", cap: "Jakarta", capAlt: ["nusantara"], tier: 1,
+    ftip: "Red over white. Poland is white over red; Monaco is identical but a squarer shape — and Indonesia is the huge one.",
+    ctip: "<b>Jakarta</b> — though a new capital, Nusantara, is being built." },
+  { name: "Iran", code: "ir", alt: ["islamic republic of iran", "persia"], cap: "Tehran", tier: 1,
+    ftip: "Green, white and red with red Arabic script running along the inner edges of the bands.",
+    ctip: "<b>Tehran</b> — rhymes loosely with Iran itself." },
+  { name: "Iraq", code: "iq", cap: "Baghdad", tier: 1,
+    ftip: "Red, white and black with green Arabic script meaning <i>God is great</i> across the middle.",
+    ctip: "<b>Baghdad</b> — dad's bag." },
+  { name: "Ireland", code: "ie", alt: ["republic of ireland", "eire"], cap: "Dublin", tier: 1,
+    ftip: "Green, white, orange. Côte d'Ivoire is the exact reverse.",
+    ctip: "<b>Dublin</b> — double-in." },
+  { name: "Israel", code: "il", cap: "Jerusalem", tier: 1,
+    ftip: "Two blue stripes and the blue Star of David on white.",
+    ctip: "<b>Jerusalem</b> — Tel Aviv is the bigger city and where most embassies sit." },
+  { name: "Italy", code: "it", cap: "Rome", capAlt: ["roma"], tier: 1,
+    ftip: "Green, white and red vertical bands. Mexico uses the same colours but adds an eagle.",
+    ctip: "<b>Rome</b> — all roads lead there." },
+  { name: "Jamaica", code: "jm", cap: "Kingston", tier: 1,
+    ftip: "A gold diagonal cross with green and black — the only national flag with no red, white or blue.",
+    ctip: "<b>Kingston</b>, no W. St Vincent has Kings<b>town</b>." },
+  { name: "Japan", code: "jp", cap: "Tokyo", tier: 1,
+    ftip: "A red circle dead centre on white. Bangladesh's circle is on green and sits off-centre.",
+    ctip: "<b>Tokyo</b> — an anagram of Kyoto, the old capital." },
+  { name: "Jordan", code: "jo", cap: "Amman", tier: 2,
+    ftip: "Black, white and green with a red triangle holding a small seven-pointed star. Palestine's is the same without the star.",
+    ctip: "<b>Amman</b> — a man in Jordan." },
+  { name: "Kazakhstan", code: "kz", cap: "Astana", capAlt: ["nur sultan", "nursultan"], tier: 2,
+    ftip: "Sky blue with a golden sun and eagle, plus an ornamental band down the hoist.",
+    ctip: "<b>Astana</b> literally means <b>capital</b> in Kazakh." },
+  { name: "Kenya", code: "ke", cap: "Nairobi", tier: 1,
+    ftip: "Black, red and green with a Maasai shield and two crossed spears.",
+    ctip: "<b>Nairobi</b> — ny-ROH-bee." },
+  { name: "Kiribati", code: "ki", cap: "Tarawa", capAlt: ["south tarawa"], tier: 3,
+    ftip: "A golden frigatebird flying over a rising sun and blue-and-white wave bands.",
+    ctip: "<b>Tarawa</b> — the site of a famous Pacific battle." },
+  { name: "Kosovo", code: "xk", alt: ["republic of kosovo"], cap: "Pristina", capAlt: ["prishtina"], tier: 3,
+    ftip: "Blue with a gold map of the country and six white stars above it.",
+    ctip: "<b>Pristina</b> — like pristine with an A." },
+  { name: "Kuwait", code: "kw", cap: "Kuwait City", tier: 2,
+    ftip: "Green, white and red bands with a black trapezoid at the hoist — not a triangle, which is the giveaway.",
+    ctip: "The country's own name plus <b>City</b>." },
+  { name: "Kyrgyzstan", code: "kg", alt: ["kyrgyz republic"], cap: "Bishkek", tier: 3,
+    ftip: "Red with a yellow sun, and inside the sun the crossed roof-beams of a yurt seen from below.",
+    ctip: "<b>Bishkek</b> — bish-KEK." },
+  { name: "Laos", code: "la", alt: ["lao", "lao pdr"], cap: "Vientiane", tier: 2,
+    ftip: "Red bands with a wider blue band and a white circle — the moon over the Mekong.",
+    ctip: "<b>Vientiane</b> — vyen-TYAN, on the Mekong." },
+  { name: "Latvia", code: "lv", cap: "Riga", tier: 2,
+    ftip: "Dark maroon-red with a narrow white stripe. Austria's red is brighter and its white band is just as wide as the red.",
+    ctip: "<b>Riga</b> — four letters, like its Baltic neighbours' short capitals." },
+  { name: "Lebanon", code: "lb", cap: "Beirut", tier: 2,
+    ftip: "Red bands top and bottom with a green cedar tree on white.",
+    ctip: "<b>Beirut</b> — bay-ROOT, on the Mediterranean." },
+  { name: "Lesotho", code: "ls", cap: "Maseru", tier: 3,
+    ftip: "Blue, white and green with a black mokorotlo — the traditional Basotho straw hat.",
+    ctip: "<b>Maseru</b> — Lesotho sits entirely inside South Africa." },
+  { name: "Liberia", code: "lr", cap: "Monrovia", tier: 3,
+    ftip: "Looks like the US flag but with eleven stripes and a single white star.",
+    ctip: "<b>Monrovia</b> is named after US President <b>Monroe</b> — Liberia was founded by freed American slaves." },
+  { name: "Libya", code: "ly", cap: "Tripoli", tier: 2,
+    ftip: "Red, black and green with a white crescent and star, the black band wider than the others.",
+    ctip: "<b>Tripoli</b> — tri- for three ancient cities." },
+  { name: "Liechtenstein", code: "li", cap: "Vaduz", tier: 3,
+    ftip: "Blue over red with a gold crown in the top corner — the crown was added to tell it apart from Haiti's.",
+    ctip: "<b>Vaduz</b> — VAH-doots." },
+  { name: "Lithuania", code: "lt", cap: "Vilnius", tier: 2,
+    ftip: "Yellow, green and red horizontal bands.",
+    ctip: "<b>Vilnius</b> — VIL-nee-us." },
+  { name: "Luxembourg", code: "lu", cap: "Luxembourg City", capAlt: ["luxembourg"], tier: 2,
+    ftip: "Red, white and light blue. The Netherlands is the same but with a noticeably darker blue.",
+    ctip: "The country's own name plus <b>City</b>." },
+  { name: "Madagascar", code: "mg", cap: "Antananarivo", tier: 2,
+    ftip: "A white vertical band at the hoist with red over green.",
+    ctip: "<b>Antananarivo</b> means <b>city of the thousand</b>. Often shortened to Tana." },
+  { name: "Malawi", code: "mw", cap: "Lilongwe", tier: 3,
+    ftip: "Black, red and green with a rising red sun in the black band.",
+    ctip: "<b>Lilongwe</b> — li-LONG-way." },
+  { name: "Malaysia", code: "my", cap: "Kuala Lumpur", capAlt: ["putrajaya"], tier: 2,
+    ftip: "Fourteen red and white stripes with a crescent and star — the Stars and Stripes layout with Islamic symbols.",
+    ctip: "<b>Kuala Lumpur</b> means <b>muddy confluence</b>." },
+  { name: "Maldives", code: "mv", cap: "Malé", tier: 3,
+    ftip: "A red border around a green rectangle with a white crescent.",
+    ctip: "<b>Malé</b> is almost the country's own name." },
+  { name: "Mali", code: "ml", cap: "Bamako", tier: 3,
+    ftip: "Green, yellow, red vertical bands — Guinea's three colours in reverse.",
+    ctip: "<b>Bamako</b> — BAM-a-ko, on the Niger River." },
+  { name: "Malta", code: "mt", cap: "Valletta", tier: 2,
+    ftip: "White and red halves with the George Cross in the top corner — awarded by Britain for wartime bravery.",
+    ctip: "<b>Valletta</b> — double L, double T." },
+  { name: "Marshall Islands", code: "mh", cap: "Majuro", tier: 3,
+    ftip: "Blue with orange and white stripes rising diagonally, and a 24-pointed white star.",
+    ctip: "<b>Majuro</b> — ma-JOO-ro." },
+  { name: "Mauritania", code: "mr", cap: "Nouakchott", tier: 3,
+    ftip: "Green with a gold crescent and star, framed by red bands top and bottom.",
+    ctip: "<b>Nouakchott</b> — nwak-SHOT." },
+  { name: "Mauritius", code: "mu", cap: "Port Louis", tier: 3,
+    ftip: "Four equal horizontal stripes: red, blue, yellow, green — unusual for having four.",
+    ctip: "<b>Port Louis</b> — a French name on an Indian Ocean island." },
+  { name: "Mexico", code: "mx", cap: "Mexico City", capAlt: ["ciudad de mexico", "cdmx"], tier: 1,
+    ftip: "Green, white and red with an eagle eating a snake on a cactus. Italy has the same colours but nothing in the middle.",
+    ctip: "The country's own name plus <b>City</b>." },
+  { name: "Micronesia", code: "fm", alt: ["federated states of micronesia"], cap: "Palikir", tier: 3,
+    ftip: "Light blue with four white stars in a diamond — one per state.",
+    ctip: "<b>Palikir</b> — pa-li-KEER." },
+  { name: "Moldova", code: "md", alt: ["republic of moldova"], cap: "Chișinău", capAlt: ["kishinev"], tier: 3,
+    ftip: "Blue, yellow and red like Romania, but with an eagle-and-aurochs crest in the centre.",
+    ctip: "<b>Chișinău</b> — KISH-i-now. Also spelled Kishinev." },
+  { name: "Monaco", code: "mc", cap: "Monaco", tier: 2,
+    ftip: "Red over white — the same as Indonesia, but a squarer shape. Monaco is the tiny one.",
+    ctip: "City and country share a name — a freebie." },
+  { name: "Mongolia", code: "mn", cap: "Ulaanbaatar", capAlt: ["ulan bator"], tier: 2,
+    ftip: "Red, blue, red with the golden Soyombo column of symbols at the hoist.",
+    ctip: "<b>Ulaanbaatar</b> means <b>red hero</b>." },
+  { name: "Montenegro", code: "me", cap: "Podgorica", tier: 3,
+    ftip: "Deep red with a gold border and a gold two-headed eagle in the middle.",
+    ctip: "<b>Podgorica</b> means <b>under the little hill</b>." },
+  { name: "Morocco", code: "ma", cap: "Rabat", tier: 1,
+    ftip: "Plain red with a green interlaced five-pointed star.",
+    ctip: "<b>Rabat</b> — not Casablanca or Marrakesh." },
+  { name: "Mozambique", code: "mz", cap: "Maputo", tier: 2,
+    ftip: "The only national flag with a modern rifle on it — an AK-47 crossed with a hoe.",
+    ctip: "<b>Maputo</b> — ma-POO-toh." },
+  { name: "Myanmar", code: "mm", alt: ["burma"], cap: "Naypyidaw", capAlt: ["nay pyi taw"], tier: 2,
+    ftip: "Yellow, green and red with one big white star across the middle.",
+    ctip: "<b>Naypyidaw</b> was built from nothing in 2005. Yangon is the old capital and no longer counts." },
+  { name: "Namibia", code: "na", cap: "Windhoek", tier: 3,
+    ftip: "A red diagonal stripe splitting blue and green, with a gold sun in the top corner.",
+    ctip: "<b>Windhoek</b> — VINT-hook, an Afrikaans name." },
+  { name: "Nauru", code: "nr", cap: "Yaren", tier: 3,
+    ftip: "Blue with a thin gold stripe and a white star below it — the stripe is the equator and the star is the island just beneath it.",
+    ctip: "<b>Yaren</b> — Nauru has no official capital, but Yaren is it in practice." },
+  { name: "Nepal", code: "np", cap: "Kathmandu", tier: 1,
+    ftip: "The only national flag that isn't a rectangle — two stacked pennants with a moon and sun.",
+    ctip: "<b>Kathmandu</b> — kat-man-DOO." },
+  { name: "Netherlands", code: "nl", cap: "Amsterdam", capAlt: ["the hague", "den haag"], tier: 1,
+    ftip: "Red, white and blue horizontal bands. Luxembourg's is the same but with a lighter blue.",
+    ctip: "<b>Amsterdam</b> is the capital, though the government sits in The Hague. Both count." },
+  { name: "New Zealand", code: "nz", cap: "Wellington", tier: 1,
+    ftip: "Union Jack with four red stars edged in white. Australia's has six white stars, one of them large.",
+    ctip: "<b>Wellington</b> — like the boot." },
+  { name: "Nicaragua", code: "ni", cap: "Managua", tier: 2,
+    ftip: "Blue-white-blue with a triangle and rainbow in the centre — one of only a few flags with purple in it.",
+    ctip: "<b>Managua</b> — careful, Manama is Bahrain." },
+  { name: "Niger", code: "ne", cap: "Niamey", tier: 3,
+    ftip: "Orange, white and green with a plain orange circle. India's has a blue spoked wheel instead.",
+    ctip: "<b>Ni</b>ger → <b>Ni</b>amey. Both start the same." },
+  { name: "Nigeria", code: "ng", cap: "Abuja", tier: 1,
+    ftip: "Green, white, green in vertical bands — no emblem at all.",
+    ctip: "<b>Abuja</b> replaced Lagos as capital in 1991." },
+  { name: "North Korea", code: "kp", alt: ["dprk", "democratic peoples republic of korea"], cap: "Pyongyang", tier: 1,
+    ftip: "A red star inside a white circle, on a wide red band between blue stripes.",
+    ctip: "<b>Pyongyang</b> — pyong-YANG." },
+  { name: "North Macedonia", code: "mk", alt: ["macedonia"], cap: "Skopje", tier: 3,
+    ftip: "A golden sun with eight broad rays spreading to the edges of a red field.",
+    ctip: "<b>Skopje</b> — SKOP-yeh." },
+  { name: "Norway", code: "no", cap: "Oslo", tier: 1,
+    ftip: "A blue Nordic cross outlined in white, on red. Iceland's is the same idea with the colours swapped.",
+    ctip: "<b>Oslo</b> — four letters, easy." },
+  { name: "Oman", code: "om", cap: "Muscat", tier: 2,
+    ftip: "White, red and green with a red band at the hoist carrying crossed daggers.",
+    ctip: "<b>Muscat</b> — like the grape." },
+  { name: "Pakistan", code: "pk", cap: "Islamabad", tier: 1,
+    ftip: "Dark green with a white crescent and star, plus a white band at the hoist for minorities.",
+    ctip: "<b>Islamabad</b> — the city of Islam. Not Karachi, the old capital." },
+  { name: "Palau", code: "pw", cap: "Ngerulmud", tier: 3,
+    ftip: "Light blue with a yellow moon set slightly off-centre — a full moon, not a sun.",
+    ctip: "<b>Ngerulmud</b> — the least guessable capital on Earth." },
   { name: "Palestine", code: "ps", alt: ["state of palestine"],
-    cap: "Ramallah", capAlt: ["east jerusalem", "jerusalem"] },
-  { name: "Panama", code: "pa", cap: "Panama City" },
-  { name: "Papua New Guinea", code: "pg", alt: ["png"], cap: "Port Moresby" },
-  { name: "Paraguay", code: "py", cap: "Asunción" },
-  { name: "Peru", code: "pe", cap: "Lima" },
-  { name: "Philippines", code: "ph", cap: "Manila" },
-  { name: "Poland", code: "pl", cap: "Warsaw", capAlt: ["warszawa"] },
-  { name: "Portugal", code: "pt", cap: "Lisbon", capAlt: ["lisboa"] },
-  { name: "Qatar", code: "qa", cap: "Doha" },
-  { name: "Romania", code: "ro", cap: "Bucharest" },
-  { name: "Russia", code: "ru", alt: ["russian federation"], cap: "Moscow" },
-  { name: "Rwanda", code: "rw", cap: "Kigali" },
-  { name: "Saint Kitts and Nevis", code: "kn", alt: ["saint kitts"], cap: "Basseterre" },
-  { name: "Saint Lucia", code: "lc", cap: "Castries" },
-  { name: "Saint Vincent and the Grenadines", code: "vc", alt: ["saint vincent"], cap: "Kingstown" },
-  { name: "Samoa", code: "ws", cap: "Apia" },
-  { name: "San Marino", code: "sm", cap: "San Marino" },
-  { name: "São Tomé and Príncipe", code: "st", alt: ["sao tome"], cap: "São Tomé" },
-  { name: "Saudi Arabia", code: "sa", cap: "Riyadh" },
-  { name: "Senegal", code: "sn", cap: "Dakar" },
-  { name: "Serbia", code: "rs", cap: "Belgrade" },
-  { name: "Seychelles", code: "sc", cap: "Victoria" },
-  { name: "Sierra Leone", code: "sl", cap: "Freetown" },
-  { name: "Singapore", code: "sg", cap: "Singapore" },
-  { name: "Slovakia", code: "sk", alt: ["slovak republic"], cap: "Bratislava" },
-  { name: "Slovenia", code: "si", cap: "Ljubljana" },
-  { name: "Solomon Islands", code: "sb", cap: "Honiara" },
-  { name: "Somalia", code: "so", cap: "Mogadishu" },
-  { name: "South Africa", code: "za", cap: "Pretoria", capAlt: ["cape town", "bloemfontein"] },
-  { name: "South Korea", code: "kr", alt: ["republic of korea"], cap: "Seoul" },
-  { name: "South Sudan", code: "ss", cap: "Juba" },
-  { name: "Spain", code: "es", cap: "Madrid" },
+    cap: "Ramallah", capAlt: ["east jerusalem", "jerusalem"], tier: 2,
+    ftip: "Black, white and green with a red triangle. Jordan's is identical apart from a white star in the triangle.",
+    ctip: "<b>Ramallah</b> is the administrative seat; Jerusalem is the declared capital. Both count." },
+  { name: "Panama", code: "pa", cap: "Panama City", tier: 2,
+    ftip: "Four quarters: white with a blue star, plain red, white with a red star, plain blue.",
+    ctip: "The country's own name plus <b>City</b>." },
+  { name: "Papua New Guinea", code: "pg", alt: ["png"], cap: "Port Moresby", tier: 2,
+    ftip: "Split corner to corner: a bird-of-paradise on red, the Southern Cross on black.",
+    ctip: "<b>Port Moresby</b> — a port, as you'd expect on an island." },
+  { name: "Paraguay", code: "py", cap: "Asunción", tier: 3,
+    ftip: "Red, white and blue bands — and the only national flag with a different emblem on each side.",
+    ctip: "<b>Asunción</b> — a-soon-SYON." },
+  { name: "Peru", code: "pe", cap: "Lima", tier: 1,
+    ftip: "Red, white, red in vertical bands. Canada has the same layout but a maple leaf in the middle.",
+    ctip: "<b>Lima</b> — like the bean." },
+  { name: "Philippines", code: "ph", cap: "Manila", tier: 1,
+    ftip: "A white triangle with a sun and three stars, beside blue and red — flown upside down in wartime, uniquely.",
+    ctip: "<b>Manila</b> — as in manila envelopes." },
+  { name: "Poland", code: "pl", cap: "Warsaw", capAlt: ["warszawa"], tier: 1,
+    ftip: "White over red. Indonesia and Monaco are red over white — the exact opposite.",
+    ctip: "<b>Warsaw</b> — war saw." },
+  { name: "Portugal", code: "pt", cap: "Lisbon", capAlt: ["lisboa"], tier: 1,
+    ftip: "Green and red with an armillary sphere and shield where the two colours meet.",
+    ctip: "<b>Lisbon</b> — Lisboa in Portuguese." },
+  { name: "Qatar", code: "qa", cap: "Doha", tier: 2,
+    ftip: "Maroon and white with nine zigzag points. Bahrain's is red with five.",
+    ctip: "<b>Doha</b> — careful, Dodoma is Tanzania." },
+  { name: "Romania", code: "ro", cap: "Bucharest", tier: 2,
+    ftip: "Blue, yellow, red — nearly identical to Chad. Romania's blue is lighter, and Romania is in Europe.",
+    ctip: "<b>Bucharest</b> — contains 'Buch', not 'Buda' like Budapest." },
+  { name: "Russia", code: "ru", alt: ["russian federation"], cap: "Moscow", tier: 1,
+    ftip: "White, blue, red horizontal bands.",
+    ctip: "<b>Moscow</b> and Red Square. Not St Petersburg, which was the imperial capital." },
+  { name: "Rwanda", code: "rw", cap: "Kigali", tier: 3,
+    ftip: "Sky blue, yellow and green with a golden sun in the top corner.",
+    ctip: "<b>Kigali</b> — ki-GAH-lee." },
+  { name: "Saint Kitts and Nevis", code: "kn", alt: ["saint kitts"], cap: "Basseterre", tier: 3,
+    ftip: "A black diagonal band with two white stars, between green and red.",
+    ctip: "<b>Basseterre</b> — French for <b>low land</b>." },
+  { name: "Saint Lucia", code: "lc", cap: "Castries", tier: 3,
+    ftip: "Blue with a black-and-white arrowhead sitting on a gold triangle — the island's twin Pitons.",
+    ctip: "<b>Castries</b> — CASS-treez." },
+  { name: "Saint Vincent and the Grenadines", code: "vc", alt: ["saint vincent"], cap: "Kingstown", tier: 3,
+    ftip: "Blue, gold and green with three green diamonds arranged in a V — V for Vincent.",
+    ctip: "Kings<b>town</b> with a W. Jamaica's is Kingston without one." },
+  { name: "Samoa", code: "ws", cap: "Apia", tier: 3,
+    ftip: "Red with a blue rectangle in the corner holding the Southern Cross.",
+    ctip: "<b>Apia</b> — ah-PEE-ah, four letters." },
+  { name: "San Marino", code: "sm", cap: "San Marino", tier: 3,
+    ftip: "White over light blue with a crest showing three towers on three peaks.",
+    ctip: "City and country share a name — a freebie." },
+  { name: "São Tomé and Príncipe", code: "st", alt: ["sao tome"], cap: "São Tomé", tier: 3,
+    ftip: "Green, yellow, green with two black stars and a red triangle — two stars for two islands.",
+    ctip: "The capital is the first half of the country's name." },
+  { name: "Saudi Arabia", code: "sa", cap: "Riyadh", tier: 1,
+    ftip: "Green with white Arabic script above a horizontal sword.",
+    ctip: "<b>Riyadh</b> sits inland in the desert. Mecca and Jeddah are over near the Red Sea." },
+  { name: "Senegal", code: "sn", cap: "Dakar", tier: 2,
+    ftip: "Green, yellow and red vertical bands with a green star in the centre.",
+    ctip: "The <b>Dakar</b> Rally was named after it." },
+  { name: "Serbia", code: "rs", cap: "Belgrade", tier: 2,
+    ftip: "Red, blue and white with a crowned double-headed eagle towards the hoist.",
+    ctip: "<b>Belgrade</b> means <b>white city</b>." },
+  { name: "Seychelles", code: "sc", cap: "Victoria", tier: 3,
+    ftip: "Five bands of colour fanning out from the bottom-left corner like rays.",
+    ctip: "<b>Victoria</b> — one of the world's smallest capitals." },
+  { name: "Sierra Leone", code: "sl", cap: "Freetown", tier: 3,
+    ftip: "Green, white and blue in three plain horizontal bands.",
+    ctip: "<b>Freetown</b> was founded as a home for freed slaves — like Liberia's Monrovia." },
+  { name: "Singapore", code: "sg", cap: "Singapore", tier: 1,
+    ftip: "Red over white with a white crescent and five stars in the top corner.",
+    ctip: "City and country share a name — a freebie." },
+  { name: "Slovakia", code: "sk", alt: ["slovak republic"], cap: "Bratislava", tier: 2,
+    ftip: "White, blue and red with a shield showing a white double cross on three blue hills.",
+    ctip: "<b>Bratislava</b> — on the Danube, an hour from Vienna." },
+  { name: "Slovenia", code: "si", cap: "Ljubljana", tier: 2,
+    ftip: "White, blue and red with a crest showing Mount Triglav's three peaks — Slovakia's shield has a cross instead.",
+    ctip: "<b>Ljubljana</b> — lyoob-lyAH-na. Starts with Lj." },
+  { name: "Solomon Islands", code: "sb", cap: "Honiara", tier: 3,
+    ftip: "A yellow diagonal separating blue and green, with five white stars in the top corner.",
+    ctip: "<b>Honiara</b> — ho-nee-AH-ra, on Guadalcanal." },
+  { name: "Somalia", code: "so", cap: "Mogadishu", tier: 2,
+    ftip: "Light blue with a single white five-pointed star — nothing else.",
+    ctip: "<b>Mogadishu</b> — mog-a-DISH-oo." },
+  { name: "South Africa", code: "za", cap: "Pretoria", capAlt: ["cape town", "bloemfontein"], tier: 1,
+    ftip: "A green Y-shape laid on six colours — more colours than any other national flag.",
+    ctip: "Three capitals: <b>Pretoria</b>, Cape Town and Bloemfontein. All count." },
+  { name: "South Korea", code: "kr", alt: ["republic of korea"], cap: "Seoul", tier: 1,
+    ftip: "A red-and-blue yin-yang circle with four black trigrams in the corners, on white.",
+    ctip: "<b>Seoul</b> sounds like <b>soul</b>." },
+  { name: "South Sudan", code: "ss", cap: "Juba", tier: 2,
+    ftip: "Black, red and green separated by white lines, with a blue triangle and gold star.",
+    ctip: "<b>Juba</b> — the world's newest national capital, from 2011." },
+  { name: "Spain", code: "es", cap: "Madrid", tier: 1,
+    ftip: "Red, yellow, red with the coat of arms set towards the hoist — the yellow band is double width.",
+    ctip: "<b>Madrid</b> — not Barcelona." },
   { name: "Sri Lanka", code: "lk", alt: ["ceylon"],
-    cap: "Sri Jayawardenepura Kotte", capAlt: ["colombo", "kotte"] },
-  { name: "Sudan", code: "sd", cap: "Khartoum" },
-  { name: "Suriname", code: "sr", cap: "Paramaribo" },
-  { name: "Sweden", code: "se", cap: "Stockholm" },
-  { name: "Switzerland", code: "ch", cap: "Bern", capAlt: ["berne"] },
-  { name: "Syria", code: "sy", alt: ["syrian arab republic"], cap: "Damascus" },
-  { name: "Taiwan", code: "tw", alt: ["republic of china", "chinese taipei"], cap: "Taipei" },
-  { name: "Tajikistan", code: "tj", cap: "Dushanbe" },
-  { name: "Tanzania", code: "tz", cap: "Dodoma" },
-  { name: "Thailand", code: "th", alt: ["siam"], cap: "Bangkok" },
-  { name: "Timor-Leste", code: "tl", alt: ["east timor"], cap: "Dili" },
-  { name: "Togo", code: "tg", cap: "Lomé" },
-  { name: "Tonga", code: "to", cap: "Nuku'alofa", capAlt: ["nukualofa"] },
-  { name: "Trinidad and Tobago", code: "tt", alt: ["trinidad"], cap: "Port of Spain" },
-  { name: "Tunisia", code: "tn", cap: "Tunis" },
-  { name: "Turkey", code: "tr", alt: ["turkiye"], cap: "Ankara" },
-  { name: "Turkmenistan", code: "tm", cap: "Ashgabat" },
-  { name: "Tuvalu", code: "tv", cap: "Funafuti" },
-  { name: "Uganda", code: "ug", cap: "Kampala" },
-  { name: "Ukraine", code: "ua", cap: "Kyiv", capAlt: ["kiev"] },
-  { name: "United Arab Emirates", code: "ae", alt: ["uae", "emirates"], cap: "Abu Dhabi" },
-  { name: "United Kingdom", code: "gb", alt: ["uk", "great britain", "britain"], cap: "London" },
+    cap: "Sri Jayawardenepura Kotte", capAlt: ["colombo", "kotte"], tier: 2,
+    ftip: "A golden lion holding a sword, beside green and orange bands.",
+    ctip: "Officially <b>Sri Jayawardenepura Kotte</b>, but <b>Colombo</b> also counts." },
+  { name: "Sudan", code: "sd", cap: "Khartoum", tier: 2,
+    ftip: "Red, white and black bands with a green triangle at the hoist.",
+    ctip: "<b>Khartoum</b> is where the Blue and White Nile meet." },
+  { name: "Suriname", code: "sr", cap: "Paramaribo", tier: 3,
+    ftip: "Green and white bands with a wide red centre and a yellow star.",
+    ctip: "<b>Paramaribo</b> — para-MA-ri-bo." },
+  { name: "Sweden", code: "se", cap: "Stockholm", tier: 1,
+    ftip: "A yellow Nordic cross on blue.",
+    ctip: "A <b>stock home</b> full of IKEA furniture → <b>Stockholm</b>." },
+  { name: "Switzerland", code: "ch", cap: "Bern", capAlt: ["berne"], tier: 1,
+    ftip: "A white cross on red — and square, not rectangular. Only the Vatican's is also square.",
+    ctip: "<b>Bern</b> — think <b>bears</b>, the city's symbol. Not Zurich or Geneva." },
+  { name: "Syria", code: "sy", alt: ["syrian arab republic"], cap: "Damascus", tier: 2,
+    ftip: "Red, white and black with two green stars in the white band.",
+    ctip: "<b>Damascus</b> — one of the oldest inhabited cities on Earth." },
+  { name: "Taiwan", code: "tw", alt: ["republic of china", "chinese taipei"], cap: "Taipei", tier: 2,
+    ftip: "Red with a blue rectangle in the corner holding a white twelve-rayed sun.",
+    ctip: "<b>Tai</b>wan → <b>Tai</b>pei. Both start the same." },
+  { name: "Tajikistan", code: "tj", cap: "Dushanbe", tier: 3,
+    ftip: "Red, white and green with a gold crown ringed by seven stars.",
+    ctip: "<b>Dushanbe</b> means <b>Monday</b> — it grew up around a Monday market." },
+  { name: "Tanzania", code: "tz", cap: "Dodoma", tier: 2,
+    ftip: "A black diagonal edged in yellow, splitting green and blue.",
+    ctip: "<b>Dodoma</b> took over from Dar es Salaam. Careful: Doha is Qatar." },
+  { name: "Thailand", code: "th", alt: ["siam"], cap: "Bangkok", tier: 1,
+    ftip: "Red, white, blue, white, red — the blue centre band is double width.",
+    ctip: "<b>Bangkok</b> — its full ceremonial name is the longest of any city." },
+  { name: "Timor-Leste", code: "tl", alt: ["east timor"], cap: "Dili", tier: 3,
+    ftip: "Red with black and yellow triangles stacked at the hoist, and a white star.",
+    ctip: "<b>Dili</b> — DIL-ee, four letters." },
+  { name: "Togo", code: "tg", cap: "Lomé", tier: 3,
+    ftip: "Five green and yellow stripes with a red square holding a white star.",
+    ctip: "<b>Lomé</b> — low-MAY. Careful: Lima is Peru." },
+  { name: "Tonga", code: "to", cap: "Nuku'alofa", tier: 3,
+    ftip: "Red with a small white rectangle in the corner containing a red cross.",
+    ctip: "<b>Nuku'alofa</b> — noo-koo-a-LO-fa." },
+  { name: "Trinidad and Tobago", code: "tt", alt: ["trinidad"], cap: "Port of Spain", tier: 2,
+    ftip: "Red with a black diagonal band edged in white, running corner to corner.",
+    ctip: "<b>Port of Spain</b> — a Spanish name on a formerly British island." },
+  { name: "Tunisia", code: "tn", cap: "Tunis", tier: 2,
+    ftip: "Red with a white circle holding a red crescent and star. Turkey's crescent sits directly on red, with no circle.",
+    ctip: "<b>Tunis</b>ia → <b>Tunis</b>. The capital is the country minus 'ia'." },
+  { name: "Turkey", code: "tr", alt: ["turkiye"], cap: "Ankara", tier: 1,
+    ftip: "Red with a white crescent and star, no circle behind them.",
+    ctip: "<b>Ankara</b>, not Istanbul — the capital moved in 1923." },
+  { name: "Turkmenistan", code: "tm", cap: "Ashgabat", tier: 3,
+    ftip: "Green with an elaborate carpet-pattern stripe at the hoist — the most intricate national flag in the world.",
+    ctip: "<b>Ashgabat</b> — ASH-ga-bat." },
+  { name: "Tuvalu", code: "tv", cap: "Funafuti", tier: 3,
+    ftip: "Light blue with a Union Jack and nine yellow stars laid out like the islands themselves.",
+    ctip: "<b>Funafuti</b> — foo-na-FOO-tee." },
+  { name: "Uganda", code: "ug", cap: "Kampala", tier: 2,
+    ftip: "Six black, yellow and red stripes with a grey crowned crane in a white circle.",
+    ctip: "<b>Kampala</b> — kam-PAH-la." },
+  { name: "Ukraine", code: "ua", cap: "Kyiv", capAlt: ["kiev"], tier: 1,
+    ftip: "Blue over yellow — sky above a wheat field.",
+    ctip: "<b>Kyiv</b> — the Ukrainian spelling; Kiev is the older Russian one." },
+  { name: "United Arab Emirates", code: "ae", alt: ["uae", "emirates"], cap: "Abu Dhabi", tier: 2,
+    ftip: "A red vertical band at the hoist with green, white and black stripes.",
+    ctip: "<b>Abu Dhabi</b>, not Dubai — Dubai is bigger but Abu Dhabi governs." },
+  { name: "United Kingdom", code: "gb", alt: ["uk", "great britain", "britain"], cap: "London", tier: 1,
+    ftip: "The Union Jack — overlapping crosses of England, Scotland and Ireland.",
+    ctip: "<b>London</b>, on the Thames. Edinburgh and Cardiff are national capitals, but not of the UK." },
   { name: "United States", code: "us",
     alt: ["usa", "us", "united states of america", "america"],
-    cap: "Washington, D.C.", capAlt: ["washington dc", "washington"] },
-  { name: "Uruguay", code: "uy", cap: "Montevideo" },
-  { name: "Uzbekistan", code: "uz", cap: "Tashkent" },
-  { name: "Vanuatu", code: "vu", cap: "Port Vila" },
-  { name: "Vatican City", code: "va", alt: ["vatican", "holy see"], cap: "Vatican City" },
-  { name: "Venezuela", code: "ve", cap: "Caracas" },
-  { name: "Vietnam", code: "vn", alt: ["viet nam"], cap: "Hanoi" },
-  { name: "Yemen", code: "ye", cap: "Sana'a", capAlt: ["sanaa"] },
-  { name: "Zambia", code: "zm", cap: "Lusaka" },
-  { name: "Zimbabwe", code: "zw", cap: "Harare" }
+    cap: "Washington, D.C.", capAlt: ["washington dc", "washington"], tier: 1,
+    ftip: "Fifty stars and thirteen stripes. Liberia and Malaysia borrow the layout but have fewer stars.",
+    ctip: "<b>Washington, D.C.</b> — not New York." },
+  { name: "Uruguay", code: "uy", cap: "Montevideo", tier: 2,
+    ftip: "Nine stripes with a Sun of May in the top corner. Argentina's sun sits in the centre instead.",
+    ctip: "<b>Montevideo</b> — <b>monte</b> means mountain: 'I see a mountain'." },
+  { name: "Uzbekistan", code: "uz", cap: "Tashkent", tier: 3,
+    ftip: "Blue, white and green separated by red lines, with a crescent and twelve stars.",
+    ctip: "<b>Tashkent</b> means <b>stone city</b>." },
+  { name: "Vanuatu", code: "vu", cap: "Port Vila", tier: 3,
+    ftip: "A black triangle at the hoist with a boar's tusk curled around two fern fronds.",
+    ctip: "<b>Port Vila</b> — another Pacific port capital." },
+  { name: "Vatican City", code: "va", alt: ["vatican", "holy see"], cap: "Vatican City", tier: 2,
+    ftip: "Square, like Switzerland's, with crossed gold and silver keys under the papal tiara.",
+    ctip: "City and country share a name — a freebie." },
+  { name: "Venezuela", code: "ve", cap: "Caracas", tier: 2,
+    ftip: "Yellow, blue and red with an arc of eight white stars in the blue band.",
+    ctip: "<b>Caracas</b> — ka-RA-kas." },
+  { name: "Vietnam", code: "vn", alt: ["viet nam"], cap: "Hanoi", tier: 1,
+    ftip: "Red with one large yellow five-pointed star in the centre.",
+    ctip: "<b>Hanoi</b> in the north, not Ho Chi Minh City in the south." },
+  { name: "Yemen", code: "ye", cap: "Sana'a", capAlt: ["sanaa"], tier: 2,
+    ftip: "Plain red, white and black bands with no emblem at all — the simplest of the Arab tricolours.",
+    ctip: "<b>Sana'a</b> sits high in the mountains — one of the oldest cities still lived in." },
+  { name: "Zambia", code: "zm", cap: "Lusaka", tier: 3,
+    ftip: "Green with an orange eagle above three stripes crammed into the bottom-right corner.",
+    ctip: "<b>Lusaka</b> — loo-SAH-ka." },
+  { name: "Zimbabwe", code: "zw", cap: "Harare", tier: 2,
+    ftip: "Seven stripes with a white triangle holding the Zimbabwe Bird on a red star.",
+    ctip: "<b>Harare</b> — ha-RAR-ay." }
 ];
 
 /* Things people often expect to find but that aren't in the game. */
@@ -633,8 +1109,7 @@ const NOT_IN_GAME = {
 
 /* Turn whatever was typed into a plain, comparable form:
    lowercase, no accents, no punctuation, "St." becomes "Saint",
-   and a leading "the" is dropped. So "The Côte d'Ivoire!" and
-   "cote divoire" both end up as "cote divoire". */
+   and a leading "the" is dropped. */
 function normalize(text) {
   return text
     .toLowerCase()
@@ -649,22 +1124,27 @@ function normalize(text) {
 }
 
 /* Every spelling that counts as correct for a country, in a given mode. */
-function answersFor(country, mode) {
-  return mode === "capitals"
+function answersFor(country, m) {
+  return m === "capitals"
     ? [country.cap].concat(country.capAlt || [])
     : [country.name].concat(country.alt || []);
 }
 
 /* The one name we show the player when revealing the answer. */
-function displayAnswer(country, mode) {
-  return mode === "capitals" ? country.cap : country.name;
+function displayAnswer(country, m) {
+  return m === "capitals" ? country.cap : country.name;
+}
+
+/* The memory aid for the current mode. */
+function memoryTip(country, m) {
+  return m === "capitals" ? country.ctip : country.ftip;
 }
 
 /* Pre-normalize every accepted spelling once, per mode. */
-function buildLookup(mode) {
+function buildLookup(m) {
   const list = [];
   COUNTRIES.forEach(function (country) {
-    answersFor(country, mode).forEach(function (n) {
+    answersFor(country, m).forEach(function (n) {
       list.push({ country: country, key: normalize(n) });
     });
   });
@@ -673,10 +1153,8 @@ function buildLookup(mode) {
 const LOOKUPS = { flags: buildLookup("flags"), capitals: buildLookup("capitals") };
 
 /* How many small mistakes turn string a into string b?
-   Each of these counts as one: a wrong letter, a missing letter,
-   an extra letter, or two neighbouring letters swapped. So
-   "inda" -> "india" is 1, and so is "portgual" -> "portugal".
-   Swaps count as one because they're the most common typo of all. */
+   A wrong letter, a missing letter, an extra letter, or two
+   neighbouring letters swapped each count as one. */
 function editDistance(a, b) {
   const grid = [];
   for (let i = 0; i <= a.length; i++) grid.push([i]);
@@ -686,11 +1164,10 @@ function editDistance(a, b) {
     for (let j = 1; j <= b.length; j++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
       grid[i][j] = Math.min(
-        grid[i - 1][j] + 1,        // a letter was left out
-        grid[i][j - 1] + 1,        // an extra letter was typed
-        grid[i - 1][j - 1] + cost  // a letter was wrong
+        grid[i - 1][j] + 1,
+        grid[i][j - 1] + 1,
+        grid[i - 1][j - 1] + cost
       );
-      // two neighbouring letters typed the wrong way round
       if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
         grid[i][j] = Math.min(grid[i][j], grid[i - 2][j - 2] + 1);
       }
@@ -699,36 +1176,28 @@ function editDistance(a, b) {
   return grid[a.length][b.length];
 }
 
-/* How sloppy we're willing to be, based on how long the word is.
-   Very short guesses get no slack, since almost anything is close
-   to almost anything else at that length. The real protection
-   against accepting a wrong answer, though, is the "is it closer
-   to something else?" check in judge() below. */
 function typoAllowance(length) {
   if (length <= 3) return 0;
   if (length <= 8) return 1;
   return 2;
 }
 
-/* Decide whether the typed guess counts for this country.
-   Returns "exact", "typo" (right answer, spelled a bit off),
-   or "wrong". */
+/* Decide whether the typed guess counts. Returns "exact",
+   "typo" (right answer, spelled a bit off), or "wrong". */
 function judge(typed, country, whichMode) {
   const activeMode = whichMode || mode;
   const lookup = LOOKUPS[activeMode];
   const guess = normalize(typed);
   if (guess === "") return "wrong";
 
-  // Did they nail one of this country's accepted answers?
   const exact = lookup.some(function (entry) {
     return entry.country === country && entry.key === guess;
   });
   if (exact) return "exact";
 
-  // Otherwise: which answer is their spelling *closest* to?
-  // We check against every country, not just the right one, so that
-  // typing "iraq" when the answer is Iran is rejected — "iraq" is a
-  // perfect match for a different country, so it can't be a typo.
+  // Which answer is their spelling closest to? Checking against every
+  // country — not just the right one — stops "iraq" counting as a typo
+  // for Iran, since it's a perfect match for somewhere else.
   let best = Infinity;
   let winners = new Set();
   lookup.forEach(function (entry) {
@@ -750,21 +1219,28 @@ function judge(typed, country, whichMode) {
 }
 
 /* =========================================================
-   3. GAME STATE — variables that remember what's going on
+   3. GAME STATE
 ========================================================= */
 let mode = "flags";   // "flags" or "capitals"
+let level = 1;        // 1 easy, 2 medium, 3 hard, 0 all
 let deck = [];        // the shuffled countries for this round
-let index = 0;        // which question we're on (0 = the first one)
-let score = 0;        // how many we've got right
-let missed = [];      // the ones we got wrong or skipped
-let answered = false; // has the player already answered this round?
+let index = 0;        // which question we're on
+let score = 0;        // total correct
+let firstTry = 0;     // correct without needing the hint
+let withHint = 0;     // correct only after the hint
+let attempt = 0;      // 0 = first go, 1 = after the hint
+let missed = [];      // the ones we never got
+let answered = false; // is this round finished?
 
 const answerBox = document.getElementById("answer");
 
-document.getElementById("total-num").textContent = COUNTRIES.length;
-document.getElementById("final-total").textContent = COUNTRIES.length;
+/* The countries in play at the current difficulty. */
+function activeCountries() {
+  return level === 0 ? COUNTRIES : COUNTRIES.filter(function (c) {
+    return c.tier === level;
+  });
+}
 
-/* Randomly shuffle a copy of an array. */
 function shuffle(arr) {
   const copy = arr.slice();
   for (let i = copy.length - 1; i > 0; i--) {
@@ -775,7 +1251,7 @@ function shuffle(arr) {
 }
 
 /* Switch which screen is visible. The reference lists live outside the
-   card now, so they need hiding by hand once you start playing. */
+   card, so they need hiding by hand once you start playing. */
 function showScreen(id) {
   ["start-screen", "game-screen", "end-screen"].forEach(function (s) {
     document.getElementById(s).classList.toggle("hidden", s !== id);
@@ -785,18 +1261,17 @@ function showScreen(id) {
 }
 
 /* =========================================================
-   4. SWITCHING BETWEEN FLAGS AND CAPITALS
+   4. MODE AND DIFFICULTY
 ========================================================= */
 const MODE_TEXT = {
   flags: {
     title: "🌍 Guess the Flag",
-    blurb: "You'll see a flag. <strong>Type the country's name</strong> and press Enter.<br>" +
-           "All " + COUNTRIES.length + " countries, in random order.",
-    hint: "Don't worry about spelling — small typos, common short forms " +
-          "(USA, UK, DRC) and missing accents all count.",
+    blurb: "You'll see a flag. <strong>Type the country's name</strong> and press Enter.",
+    hint: "Get one wrong and you'll get a hint and a second try, " +
+          "then a way to remember it.",
     unit: "Flag",
     placeholder: "Type the country…",
-    listHeading: "Countries in the game",
+    listHeading: "Countries in this round",
     listCaption: "Every flag you'll be shown comes from this list. " +
                  "Grey text marks other spellings that also count as correct.",
     excludedCaption: "These never come up as a flag, and typing one won't be " +
@@ -804,18 +1279,24 @@ const MODE_TEXT = {
   },
   capitals: {
     title: "🏛️ Guess the Capital",
-    blurb: "You'll see a country. <strong>Type its capital city</strong> and press Enter.<br>" +
-           "All " + COUNTRIES.length + " countries, in random order.",
-    hint: "Don't worry about spelling — small typos and missing accents count, " +
-          "and either name works where a country has two capitals.",
+    blurb: "You'll see a country. <strong>Type its capital city</strong> and press Enter.",
+    hint: "Get one wrong and you'll get a hint and a second try, " +
+          "then a way to remember it.",
     unit: "Country",
     placeholder: "Type the capital…",
-    listHeading: "Capitals in the game",
+    listHeading: "Capitals in this round",
     listCaption: "Every answer comes from this list. Grey text marks other " +
                  "names that also count — including second capitals.",
     excludedCaption: "None of these is the answer to any question, and typing " +
                      "one won't be accepted. They're the most common wrong guesses."
   }
+};
+
+const LEVEL_BLURB = {
+  1: "The countries most people can already name.",
+  2: "Widely known, but the ones people hesitate on.",
+  3: "Small states, island nations and the genuinely obscure.",
+  0: "Every country in the game, in one long run."
 };
 
 function setMode(newMode) {
@@ -838,6 +1319,24 @@ function setMode(newMode) {
   buildReferenceLists();
 }
 
+function setLevel(newLevel) {
+  level = newLevel;
+  [0, 1, 2, 3].forEach(function (l) {
+    document.getElementById("level-" + l).classList.toggle("active", l === level);
+  });
+  document.getElementById("level-blurb").textContent = LEVEL_BLURB[level];
+  buildReferenceLists();
+}
+
+/* Put the country count inside each difficulty button. */
+function labelLevels() {
+  [1, 2, 3].forEach(function (l) {
+    const n = COUNTRIES.filter(function (c) { return c.tier === l; }).length;
+    document.getElementById("level-" + l).querySelector(".n").textContent = n;
+  });
+  document.getElementById("level-0").querySelector(".n").textContent = COUNTRIES.length;
+}
+
 function goHome() {
   showScreen("start-screen");
 }
@@ -845,20 +1344,22 @@ function goHome() {
 /* =========================================================
    5. PLAYING
 ========================================================= */
-
-/* Start (or restart) the game in the current mode. */
 function startGame() {
-  deck = shuffle(COUNTRIES);
+  deck = shuffle(activeCountries());
   index = 0;
   score = 0;
+  firstTry = 0;
+  withHint = 0;
   missed = [];
+  document.getElementById("total-num").textContent = deck.length;
+  document.getElementById("final-total").textContent = deck.length;
   showScreen("game-screen");
   showQuestion();
 }
 
-/* Draw one round: the question, plus an empty answer box. */
 function showQuestion() {
   answered = false;
+  attempt = 0;
   const country = deck[index];
 
   document.getElementById("current-num").textContent = index + 1;
@@ -866,7 +1367,6 @@ function showQuestion() {
   document.getElementById("progress").style.width =
     (index / deck.length) * 100 + "%";
 
-  // Flags mode shows a picture; capitals mode shows the country's name.
   document.getElementById("prompt-flag").classList.toggle("hidden", mode !== "flags");
   document.getElementById("prompt-country").classList.toggle("hidden", mode !== "capitals");
 
@@ -887,47 +1387,86 @@ function showQuestion() {
   answerBox.focus();
 
   document.getElementById("check-btn").disabled = false;
+  document.getElementById("check-btn").textContent = "Check answer";
   document.getElementById("skip-btn").disabled = false;
+  document.getElementById("skip-btn").textContent = "Skip";
   document.getElementById("feedback").innerHTML = "";
+  document.getElementById("tip").classList.add("hidden");
   document.getElementById("next-btn").classList.add("hidden");
 }
 
-/* The player pressed Enter or clicked "Check answer". */
+/* Build the clue: the first letter, then how long each word is.
+   "Saint John's" becomes "Starts with S · 5 + 5 letters".
+   Punctuation is ignored, so an apostrophe doesn't show up as a
+   phantom one-letter word. */
+function buildHint(answer) {
+  const lengths = answer.trim().split(/\s+/)
+    .map(function (w) { return w.replace(/[^A-Za-zÀ-ÿ0-9]/g, "").length; })
+    .filter(function (n) { return n > 0; });
+
+  const total = lengths.reduce(function (a, b) { return a + b; }, 0);
+  return "Starts with <strong>" + answer.trim().charAt(0).toUpperCase() +
+         "</strong> · " + lengths.join(" + ") +
+         (total === 1 ? " letter" : " letters");
+}
+
 function submitAnswer() {
   if (answered) return;
-  if (normalize(answerBox.value) === "") return;  // ignore an empty box
+  if (normalize(answerBox.value) === "") return;
 
   const country = deck[index];
   const answer = displayAnswer(country, mode);
   const result = judge(answerBox.value, country);
 
-  if (result === "exact") {
-    finishRound(true, "✅ Correct!");
-  } else if (result === "typo") {
-    finishRound(true,
-      "✅ Correct! <span class='note'>Spelled <strong>" +
-      answer + "</strong> — close enough.</span>");
-  } else {
-    finishRound(false, "❌ It was <strong>" + answer + "</strong>.");
+  if (result === "exact" || result === "typo") {
+    const note = result === "typo"
+      ? "<span class='note'>Spelled <strong>" + answer + "</strong> — close enough.</span>"
+      : "";
+    if (attempt === 0) {
+      firstTry++;
+      finishRound(true, "✅ Correct!" + note, false);
+    } else {
+      withHint++;
+      finishRound(true, "✅ Correct — got there!" + note, true);
+    }
+    return;
   }
+
+  // First miss: offer a hint and let them try once more.
+  if (attempt === 0) {
+    attempt = 1;
+    answerBox.className = "answer-input retry";
+    answerBox.value = "";
+    answerBox.focus();
+    document.getElementById("feedback").innerHTML =
+      "Not quite — one more go." +
+      "<span class='hint-line'>" + buildHint(answer) + "</span>";
+    document.getElementById("check-btn").textContent = "Try again";
+    document.getElementById("skip-btn").textContent = "Give up";
+    return;
+  }
+
+  // Second miss: that's it.
+  finishRound(false, "❌ It was <strong>" + answer + "</strong>.", true);
 }
 
-/* The player gave up on this one. */
 function skipQuestion() {
   if (answered) return;
   finishRound(false,
-    "⏭️ Skipped — it was <strong>" +
-    displayAnswer(deck[index], mode) + "</strong>.");
+    "⏭️ It was <strong>" + displayAnswer(deck[index], mode) + "</strong>.", true);
 }
 
-/* Lock in the round, update the score, show the Next button. */
-function finishRound(gotItRight, message) {
+/* Lock in the round. showTip controls whether the memory aid appears —
+   we only show it when the answer didn't come first time. */
+function finishRound(gotItRight, message, showTip) {
   answered = true;
 
   if (gotItRight) {
     score++;
+    answerBox.classList.remove("retry");
     answerBox.classList.add("correct");
   } else {
+    answerBox.classList.remove("retry");
     answerBox.classList.add("wrong");
     missed.push(deck[index]);
   }
@@ -938,12 +1477,20 @@ function finishRound(gotItRight, message) {
   document.getElementById("score").textContent = score;
   document.getElementById("feedback").innerHTML = message;
 
+  const tipBox = document.getElementById("tip");
+  const tipText = memoryTip(deck[index], mode);
+  if (showTip && tipText) {
+    tipBox.innerHTML = "💡 " + tipText;
+    tipBox.classList.remove("hidden");
+  } else {
+    tipBox.classList.add("hidden");
+  }
+
   const nextBtn = document.getElementById("next-btn");
   nextBtn.classList.remove("hidden");
   nextBtn.focus();
 }
 
-/* Move to the next question, or finish the game. */
 function nextQuestion() {
   index++;
   if (index >= deck.length) {
@@ -967,10 +1514,12 @@ function endGame() {
   else if (percent >= 50) message = "Solid effort — over half right!";
   else                    message = "Nice try! Play again and you'll improve.";
 
-  document.getElementById("final-message").textContent =
-    "You scored " + percent + "%. " + message;
+  let detail = "You scored " + percent + "%. " + message;
+  if (withHint > 0) {
+    detail += "  " + firstTry + " first time, " + withHint + " with a hint.";
+  }
+  document.getElementById("final-message").textContent = detail;
 
-  // List the ones that got away, so you can learn them.
   const title = document.getElementById("missed-title");
   const list = document.getElementById("missed-list");
   list.innerHTML = "";
@@ -987,9 +1536,12 @@ function endGame() {
       const label = mode === "capitals"
         ? country.name + " <span class='answer'>— " + country.cap + "</span>"
         : country.name;
+      const tipText = memoryTip(country, mode);
       row.innerHTML =
         '<img src="https://flagcdn.com/w80/' + country.code + '.png" alt="">' +
-        "<span>" + label + "</span>";
+        "<span>" + label +
+        (tipText ? "<span class='memo'>" + tipText + "</span>" : "") +
+        "</span>";
       list.appendChild(row);
     });
   }
@@ -998,22 +1550,16 @@ function endGame() {
 /* =========================================================
    7. THE REFERENCE LISTS ON THE START SCREEN
 ========================================================= */
-
-/* Build the list of every answer you might need, for the current mode.
-   Deliberately no flag pictures and no country/capital pairings here —
-   either would give the game away. */
 function buildReferenceLists() {
   const grid = document.getElementById("accepted-list");
   grid.innerHTML = "";
 
-  // Sort by the answer itself, so capitals mode reads alphabetically too.
-  const rows = COUNTRIES.map(function (country) {
+  const rows = activeCountries().map(function (country) {
     const answers = answersFor(country, mode);
     const main = answers[0];
     const key = normalize(main);
-    // Only show alternatives that are genuinely different names. Ones that
-    // are merely a different spelling would just be clutter, since
-    // near-misses are forgiven anyway.
+    // Only show alternatives that are genuinely different names; a mere
+    // respelling would be clutter, since near-misses are forgiven anyway.
     const extras = answers.slice(1).filter(function (a) {
       return editDistance(normalize(a), key) > 2;
     });
@@ -1052,8 +1598,7 @@ function buildReferenceLists() {
 }
 
 /* =========================================================
-   8. KEYBOARD: Enter checks your answer, then Enter again
-      moves on to the next question.
+   8. KEYBOARD: Enter submits, then Enter again moves on.
 ========================================================= */
 document.addEventListener("keydown", function (e) {
   if (e.key !== "Enter") return;
@@ -1066,7 +1611,9 @@ document.addEventListener("keydown", function (e) {
   }
 });
 
-/* Start out on the Flags version. */
+/* Start out on Flags, Easy. */
+labelLevels();
+setLevel(1);
 setMode("flags");
 </script>
 
