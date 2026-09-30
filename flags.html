@@ -368,7 +368,9 @@
 
 <div class="page">
 
-<a class="back-link" href="/">← Priyasha Agarwal</a>
+<!-- Only useful once you're playing — hidden on the menu itself. -->
+<a class="back-link hidden" id="back-link" href="#"
+   onclick="goHome(); return false;">← Back to menu</a>
 
 <!-- Everything you actually play with lives in the raised card. -->
 <div class="card">
@@ -1283,6 +1285,9 @@ function showScreen(id) {
   });
   document.getElementById("reference")
     .classList.toggle("hidden", id !== "start-screen");
+  // No point offering a way back to the menu while you're on it.
+  document.getElementById("back-link")
+    .classList.toggle("hidden", id === "start-screen");
 }
 
 /* =========================================================
