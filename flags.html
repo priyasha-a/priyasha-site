@@ -310,9 +310,23 @@
   .excluded-group .why { font-size: 11.5px; color: #6d7f99; margin-bottom: 3px; }
   .excluded-group .items { font-size: 12.5px; line-height: 1.5; color: #a8b8cd; }
 
-  /* ---- end-of-game review list ---- */
+  /* ---- end-of-game review lists ---- */
+  .review-title {
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 24px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .review-title.hinted { color: #fcd34d; }
+  .review-title.missed { color: #fca5a5; }
+
   .missed-list {
-    max-height: 280px;
+    max-height: 260px;
     overflow-y: auto;
     text-align: left;
     margin: 18px 0;
@@ -421,8 +435,19 @@
     <div class="big-score"><span id="final-score">0</span> / <span id="final-total">197</span></div>
     <p class="sub" id="final-message"></p>
 
-    <p class="sub" id="missed-title" style="font-weight:600; margin-bottom:0;"></p>
-    <div class="missed-list hidden" id="missed-list"></div>
+    <p class="sub" id="perfect-note" style="font-weight:600;"></p>
+
+    <!-- Right, but only after the hint -->
+    <div id="hinted-wrap" class="hidden">
+      <p class="review-title" id="hinted-title"></p>
+      <div class="missed-list" id="hinted-list"></div>
+    </div>
+
+    <!-- Never got there -->
+    <div id="missed-wrap" class="hidden">
+      <p class="review-title" id="missed-title"></p>
+      <div class="missed-list" id="missed-list"></div>
+    </div>
 
     <button class="primary" onclick="startGame()">Play again</button>
     <button onclick="goHome()" style="margin-top:10px;">Back to menu</button>
@@ -1227,8 +1252,8 @@ let deck = [];        // the shuffled countries for this round
 let index = 0;        // which question we're on
 let score = 0;        // total correct
 let firstTry = 0;     // correct without needing the hint
-let withHint = 0;     // correct only after the hint
 let attempt = 0;      // 0 = first go, 1 = after the hint
+let hinted = [];      // got there, but only after the hint
 let missed = [];      // the ones we never got
 let answered = false; // is this round finished?
 
@@ -1349,7 +1374,7 @@ function startGame() {
   index = 0;
   score = 0;
   firstTry = 0;
-  withHint = 0;
+  hinted = [];
   missed = [];
   document.getElementById("total-num").textContent = deck.length;
   document.getElementById("final-total").textContent = deck.length;
@@ -1426,7 +1451,7 @@ function submitAnswer() {
       firstTry++;
       finishRound(true, "✅ Correct!" + note, false);
     } else {
-      withHint++;
+      hinted.push(country);
       finishRound(true, "✅ Correct — got there!" + note, true);
     }
     return;
@@ -1515,36 +1540,59 @@ function endGame() {
   else                    message = "Nice try! Play again and you'll improve.";
 
   let detail = "You scored " + percent + "%. " + message;
-  if (withHint > 0) {
-    detail += "  " + firstTry + " first time, " + withHint + " with a hint.";
+  if (hinted.length > 0) {
+    detail += "  " + firstTry + " first time, " + hinted.length + " with a hint.";
   }
   document.getElementById("final-message").textContent = detail;
 
-  const title = document.getElementById("missed-title");
-  const list = document.getElementById("missed-list");
+  // Two review lists: the ones that needed a nudge, and the ones that
+  // got away. Both carry the memory aid so this doubles as a study sheet.
+  fillReview("hinted", hinted,
+    "💡 Got these with a hint (" + hinted.length + ")");
+  fillReview("missed", missed,
+    "❌ Didn't get these (" + missed.length + ")");
+
+  const perfect = document.getElementById("perfect-note");
+  if (hinted.length === 0 && missed.length === 0) {
+    perfect.textContent = "A perfect run — every one first time!";
+  } else if (missed.length === 0) {
+    perfect.textContent = "Nothing missed outright — just the ones below to firm up.";
+  } else {
+    perfect.textContent = "";
+  }
+}
+
+/* Draw one of the two review lists, or hide it if there's nothing in it. */
+function fillReview(which, countries, heading) {
+  const wrap = document.getElementById(which + "-wrap");
+  const list = document.getElementById(which + "-list");
+  const title = document.getElementById(which + "-title");
+
   list.innerHTML = "";
 
-  if (missed.length === 0) {
-    title.textContent = "A perfect run — you didn't miss a single one!";
-    list.classList.add("hidden");
-  } else {
-    title.textContent = "Ones to review (" + missed.length + "):";
-    list.classList.remove("hidden");
-    missed.forEach(function (country) {
-      const row = document.createElement("div");
-      row.className = "missed-row";
-      const label = mode === "capitals"
-        ? country.name + " <span class='answer'>— " + country.cap + "</span>"
-        : country.name;
-      const tipText = memoryTip(country, mode);
-      row.innerHTML =
-        '<img src="https://flagcdn.com/w80/' + country.code + '.png" alt="">' +
-        "<span>" + label +
-        (tipText ? "<span class='memo'>" + tipText + "</span>" : "") +
-        "</span>";
-      list.appendChild(row);
-    });
+  if (countries.length === 0) {
+    wrap.classList.add("hidden");
+    return;
   }
+
+  wrap.classList.remove("hidden");
+  title.className = "review-title " + which;
+  title.textContent = heading;
+
+  countries.forEach(function (country) {
+    const row = document.createElement("div");
+    row.className = "missed-row";
+    const label = mode === "capitals"
+      ? country.name + " <span class='answer'>— " + country.cap + "</span>"
+      : country.name;
+    const tipText = memoryTip(country, mode);
+    row.innerHTML =
+      '<img src="https://flagcdn.com/w80/' + country.code + '.png" alt="">' +
+      "<span>" + label +
+      (tipText ? "<span class='memo'>" + tipText + "</span>" : "") +
+      "</span>";
+    list.appendChild(row);
+  });
 }
 
 /* =========================================================
