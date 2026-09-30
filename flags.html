@@ -73,11 +73,28 @@
     font-weight: 600;
     margin: 0 0 5px;
   }
-  .resume-panel .r-detail { font-size: 15.5px; margin: 0 0 12px; }
-  .resume-panel .r-detail .where { color: #94a3b8; font-size: 14px; }
-  .resume-panel .r-actions { display: flex; gap: 8px; }
-  .resume-panel .r-actions button { padding: 10px 16px; font-size: 14.5px; }
-  .resume-panel .r-actions .primary { flex: 1; }
+  .resume-panel .r-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.18);
+  }
+  .resume-panel .r-row:last-child { border-bottom: none; }
+  .resume-panel .r-row:first-child { padding-top: 2px; }
+
+  .resume-panel .r-info { font-size: 15px; }
+  .resume-panel .r-info .where {
+    display: block;
+    color: #94a3b8;
+    font-size: 13px;
+    margin-top: 1px;
+  }
+  .resume-panel .r-actions { display: flex; gap: 7px; }
+  .resume-panel .r-actions button { padding: 8px 15px; font-size: 14px; }
+  .resume-panel .r-actions .primary { flex: none; }
 
   /* The game itself — the only part that gets the raised panel. */
   .card {
@@ -427,14 +444,10 @@
   <!-- ===== START SCREEN ===== -->
   <div id="start-screen">
 
-    <!-- Shown only when a half-finished game is waiting. -->
+    <!-- One row per half-finished game — one per mode and difficulty. -->
     <div class="resume-panel hidden" id="resume-panel">
-      <p class="r-title">Game in progress</p>
-      <p class="r-detail" id="resume-detail"></p>
-      <div class="r-actions">
-        <button class="primary" onclick="resumeGame()">Resume</button>
-        <button onclick="discardProgress()">Discard</button>
-      </div>
+      <p class="r-title" id="resume-title"></p>
+      <div id="resume-list"></div>
     </div>
 
     <div class="mode-toggle">
@@ -1356,7 +1369,11 @@ function showScreen(id) {
    Kept in the browser's own storage, so leaving the menu —
    or closing the tab entirely — doesn't lose your place.
 ========================================================= */
-const SAVE_KEY = "flags-quiz-progress-v1";
+/* Each mode-and-difficulty combination gets its own slot, so a
+   half-finished Easy round and a half-finished Medium round can both
+   sit waiting. Eight slots at most: two modes × four difficulties. */
+const SAVE_KEY = "flags-quiz-progress-v2";
+const OLD_KEYS = ["flags-quiz-progress-v1"];
 
 /* Private browsing, blocked cookies and local files all refuse
    localStorage. Fall back to an ordinary object so resuming still
@@ -1377,38 +1394,66 @@ const store = (function () {
   }
 })();
 
-function saveProgress() {
-  const codes = function (list) { return list.map(function (c) { return c.code; }); };
+/* Which slot a given mode and difficulty live in. */
+function slotKey(m, l) { return m + "-" + l; }
+
+function loadAll() {
+  let all;
+  try { all = JSON.parse(store.getItem(SAVE_KEY)); } catch (e) { return {}; }
+  return (all && typeof all === "object") ? all : {};
+}
+
+function saveAll(all) {
   try {
-    store.setItem(SAVE_KEY, JSON.stringify({
-      mode: mode,
-      level: level,
-      deck: codes(deck),
-      index: index,
-      score: score,
-      firstTry: firstTry,
-      hinted: codes(hinted),
-      missed: codes(missed)
-    }));
+    store.setItem(SAVE_KEY, JSON.stringify(all));
+    OLD_KEYS.forEach(function (k) { store.removeItem(k); });
   } catch (e) {
     // Storage full, say. Losing the save is better than breaking the game.
   }
 }
 
-function loadProgress() {
-  let saved;
-  try {
-    saved = JSON.parse(store.getItem(SAVE_KEY));
-  } catch (e) { return null; }
-  if (!saved || !saved.deck || !saved.deck.length) return null;
-  // Only worth offering if it's genuinely part-finished — some answered,
-  // and some still to go.
-  if (!saved.index || saved.index >= saved.deck.length) return null;
-  return saved;
+function saveProgress() {
+  const codes = function (list) { return list.map(function (c) { return c.code; }); };
+  const all = loadAll();
+  all[slotKey(mode, level)] = {
+    mode: mode,
+    level: level,
+    deck: codes(deck),
+    index: index,
+    score: score,
+    firstTry: firstTry,
+    hinted: codes(hinted),
+    missed: codes(missed),
+    at: Date.now()
+  };
+  saveAll(all);
 }
 
-function discardProgress() {
-  try { store.removeItem(SAVE_KEY); } catch (e) {}
+/* A slot is only worth offering if it's genuinely part-finished:
+   some answered, and some still to go. */
+function isUsable(saved) {
+  return !!saved && !!saved.deck && !!saved.deck.length
+      && !!saved.index && saved.index < saved.deck.length;
+}
+
+function loadProgress(m, l) {
+  const saved = loadAll()[slotKey(m, l)];
+  return isUsable(saved) ? saved : null;
+}
+
+/* Every half-finished game, most recently played first. */
+function listProgress() {
+  const all = loadAll();
+  return Object.keys(all)
+    .map(function (k) { return all[k]; })
+    .filter(isUsable)
+    .sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+}
+
+function discardProgress(m, l) {
+  const all = loadAll();
+  delete all[slotKey(m === undefined ? mode : m, l === undefined ? level : l)];
+  saveAll(all);
   refreshResumePanel();
 }
 
@@ -1424,30 +1469,68 @@ function codesToCountries(codes) {
   return out;
 }
 
-/* Show or hide the "you left a game running" panel. */
+const LEVEL_NAME = { 1: "Easy", 2: "Medium", 3: "Hard", 0: "All" };
+
+/* List every half-finished game, one row each. */
 function refreshResumePanel() {
-  const saved = loadProgress();
+  const runs = listProgress();
   const panel = document.getElementById("resume-panel");
-  if (!saved) {
+  const list = document.getElementById("resume-list");
+  list.innerHTML = "";
+
+  if (runs.length === 0) {
     panel.classList.add("hidden");
     return;
   }
-  const levelName = { 1: "Easy", 2: "Medium", 3: "Hard", 0: "All" }[saved.level];
-  const modeName = saved.mode === "capitals" ? "Capitals" : "Flags";
-  document.getElementById("resume-detail").innerHTML =
-    "<strong>" + saved.index + " of " + saved.deck.length + "</strong> answered" +
-    "<span class='where'> · " + modeName + " · " + levelName + "</span>";
+
+  document.getElementById("resume-title").textContent =
+    runs.length === 1 ? "Game in progress" : runs.length + " games in progress";
+
+  runs.forEach(function (run) {
+    const row = document.createElement("div");
+    row.className = "r-row";
+
+    const info = document.createElement("div");
+    info.className = "r-info";
+    info.innerHTML =
+      "<strong>" + run.index + " of " + run.deck.length + "</strong> answered" +
+      "<span class='where'>" +
+      (run.mode === "capitals" ? "Capitals" : "Flags") +
+      " · " + LEVEL_NAME[run.level] + "</span>";
+
+    const actions = document.createElement("div");
+    actions.className = "r-actions";
+
+    const resume = document.createElement("button");
+    resume.className = "primary";
+    resume.textContent = "Resume";
+    resume.onclick = function () { resumeGame(run.mode, run.level); };
+
+    const drop = document.createElement("button");
+    drop.textContent = "Discard";
+    drop.onclick = function () { discardProgress(run.mode, run.level); };
+
+    actions.appendChild(resume);
+    actions.appendChild(drop);
+    row.appendChild(info);
+    row.appendChild(actions);
+    list.appendChild(row);
+  });
+
   panel.classList.remove("hidden");
 }
 
-function resumeGame() {
-  const saved = loadProgress();
+function resumeGame(m, l) {
+  const saved = loadProgress(m, l);
   if (!saved) return;
 
   const savedDeck = codesToCountries(saved.deck);
   const savedHinted = codesToCountries(saved.hinted || []);
   const savedMissed = codesToCountries(saved.missed || []);
-  if (!savedDeck || !savedHinted || !savedMissed) { discardProgress(); return; }
+  if (!savedDeck || !savedHinted || !savedMissed) {
+    discardProgress(saved.mode, saved.level);
+    return;
+  }
 
   setMode(saved.mode);
   setLevel(saved.level);
