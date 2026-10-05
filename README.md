@@ -14,7 +14,7 @@ changes.
 | File | What it is |
 |---|---|
 | `index.html` | The main page — content, styling and the one small script |
-| `flags.html` | The Flags & Capitals quiz, served at `/flags` |
+| `flags.html` | Atlas, the flags and capitals quiz, served at `/flags` |
 | `vercel.json` | Drops the `.html` from addresses |
 | `.gitignore` | Files that should never be published |
 

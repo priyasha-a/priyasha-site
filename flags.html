@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flags &amp; Capitals Quiz</title>
+<title>Atlas — a flags and capitals quiz</title>
+<meta name="description" content="Atlas — guess the flag or the capital for all 197 countries, at four difficulty levels.">
 <style>
   * { box-sizing: border-box; }
 
@@ -455,7 +456,7 @@
       <button id="mode-capitals" onclick="setMode('capitals')">Capitals</button>
     </div>
 
-    <h1 id="start-title"></h1>
+    <h1>🌍 Atlas</h1>
     <p class="sub" id="start-blurb"></p>
     <p class="sub" style="font-size:14px;" id="start-hint"></p>
 
@@ -1553,7 +1554,6 @@ function resumeGame(m, l) {
 ========================================================= */
 const MODE_TEXT = {
   flags: {
-    title: "🌍 Guess the Flag",
     blurb: "You'll see a flag. <strong>Type the country's name</strong> and press Enter.",
     hint: "Get one wrong and you'll get a hint and a second try, " +
           "then a way to remember it.",
@@ -1566,7 +1566,6 @@ const MODE_TEXT = {
                      "accepted as an answer. They're the ones people most often expect to see."
   },
   capitals: {
-    title: "🏛️ Guess the Capital",
     blurb: "You'll see a country. <strong>Type its capital city</strong> and press Enter.",
     hint: "Get one wrong and you'll get a hint and a second try, " +
           "then a way to remember it.",
@@ -1594,7 +1593,6 @@ function setMode(newMode) {
   document.getElementById("mode-flags").classList.toggle("active", mode === "flags");
   document.getElementById("mode-capitals").classList.toggle("active", mode === "capitals");
 
-  document.getElementById("start-title").textContent = t.title;
   document.getElementById("start-blurb").innerHTML = t.blurb;
   document.getElementById("start-hint").textContent = t.hint;
   document.getElementById("unit-label").textContent = t.unit;
